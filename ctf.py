@@ -77,12 +77,15 @@ for i in range(0, len(current_map.start_positions)):
 #<INSERT CREATE FLAG>
 #-- Create the flag
 flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
+base = gameobjects.GameVisibleObject(tanks_list[0].start_position.x, tanks_list[0].start_position.y, images.bases[0])
+
+game_objects_list.append(flag)
+game_objects_list.append(base)
 
 #----- Main Loop -----#
 
 #-- Control whether the game run
 running = True
-
 skip_update = 0
 
 while running:
@@ -92,12 +95,32 @@ while running:
         # close button of the wiendow) or if the user press the escape key.
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             running = False
+        if event.type == KEYDOWN:
+            if event.key == K_w:
+                tanks_list[0].accelerate()
+            if event.key == K_s:
+                tanks_list[0].decelerate()
+            if event.key == K_d:
+                tanks_list[0].turn_right()
+            if event.key == K_a:
+                tanks_list[0].turn_left()
+        elif event.type == KEYUP:
+            if event.key in (K_w, K_s):
+                tanks_list[0].stop_moving()
+            if event.key in (K_a, K_d):
+                tanks_list[0].stop_turning()
+            
+    
     #-- Update physics
     if skip_update == 0:
         # Loop over all the game objects and update their speed in function of their
         # acceleration.
         for obj in game_objects_list:
             obj.update()
+        for tank in tanks_list:
+            tank.try_grab_flag(flag)
+            tank.update()
+            tank.post_update()
         skip_update = 2
     else:
         skip_update -= 1
@@ -120,7 +143,8 @@ while running:
     # Update the display of the game objects on the screen
     for obj in game_objects_list:
         obj.update_screen(screen)
-
+    for tank in tanks_list:
+        tank.update_screen(screen)
     #   Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
