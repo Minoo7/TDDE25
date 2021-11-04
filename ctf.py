@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 from pygame.color import *
 import pymunk
+# https://gitlab.liu.se/tdde25/ctf/-/wikis/Tutorial
 
 #----- Initialisation -----#
 
@@ -17,6 +18,16 @@ space = pymunk.Space()
 space.gravity = (0.0,  0.0)
 space.damping = 0.1 # Adds friction to the ground for all objects
 
+static_lines = [
+    pymunk.Segment(space.static_body, (0, 0), (9, 0), 0.0),
+    pymunk.Segment(space.static_body, (0, 0), (0, 9), 0.0),
+    pymunk.Segment(space.static_body, (0, 9), (9, 9), 0.0),
+    pymunk.Segment(space.static_body, (9, 0), (9, 9), 0.0),
+]
+for line in static_lines:
+    line.elasticity = 0.95
+    line.friction = 0.9
+space.add(*static_lines)
 
 #-- Import from the ctf framework
 import ai
@@ -82,6 +93,14 @@ base = gameobjects.GameVisibleObject(tanks_list[0].start_position.x, tanks_list[
 game_objects_list.append(flag)
 game_objects_list.append(base)
 
+#--Create a bullet
+#bullet = gameobjects.GamePhysicsObject(3, 4, 0, images.bullet, space, True)
+#game_objects_list.append(bullet)
+
+
+bullet_list = []
+
+
 #----- Main Loop -----#
 
 #-- Control whether the game run
@@ -104,6 +123,24 @@ while running:
                 tanks_list[0].turn_right()
             if event.key == K_a:
                 tanks_list[0].turn_left()
+            if event.key == K_SPACE:
+                print("h")
+                tanks_list[0].shoot()
+            ##testkey:
+            if event.key == K_x:
+                #game_objects_list.append(tanks_list[0].shoot(space))
+                #pre = pygame.time.get_ticks()
+                
+            
+                game_objects_list.append(tanks_list[0].shoot(space))
+                tanks_list[0].shoot(space)
+                #tanks_list[0].shoot(space)
+                #tanks_list[0].bullet.x = 5
+            if event.key == K_y:
+                #bullet.orientation = 1
+                bullet_list[0].accelerate()
+                
+
         elif event.type == KEYUP:
             if event.key in (K_w, K_s):
                 tanks_list[0].stop_moving()
@@ -121,6 +158,13 @@ while running:
             tank.try_grab_flag(flag)
             tank.update()
             tank.post_update()
+            if tank.has_won():
+                print("Vinst")
+                quit()
+        for b in bullet_list:
+            b.update()
+            b.post_update()
+                
         skip_update = 2
     else:
         skip_update -= 1
@@ -145,6 +189,8 @@ while running:
         obj.update_screen(screen)
     for tank in tanks_list:
         tank.update_screen(screen)
+    for b in bullet_list:
+        b.update_screen(screen)
     #   Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 

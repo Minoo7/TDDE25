@@ -120,12 +120,9 @@ class GamePhysicsObject(GameObject):
             ps += [ps[0]]
             pygame.draw.lines(screen, pygame.color.THECOLORS["red"], False, ps, 1)
 
-
-
 def clamp(min_max, value):
     """ Convenient helper function to bound a value to a specific interval. """
     return min(max(-min_max, value), min_max)
-
 
 class Tank(GamePhysicsObject):
     """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
@@ -146,6 +143,10 @@ class Tank(GamePhysicsObject):
         self.flag                 = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
         self.max_speed        = Tank.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
         self.start_position       = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
+
+        #eget:
+        self.bullet = None
+        self.shooting = False
 
     def accelerate(self):
         """ Call this function to make the tank move forward. """
@@ -191,6 +192,9 @@ class Tank(GamePhysicsObject):
 
 
     def post_update(self):
+        if(self.bullet != None):
+            self.bullet.x           = self.body.position[0]
+            self.bullet.y           = self.body.position[1]
         # If the tank carries the flag, then update the positon of the flag
         if(self.flag != None):
             self.flag.x           = self.body.position[0]
@@ -221,7 +225,20 @@ class Tank(GamePhysicsObject):
 
     def shoot(self, space):
         """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
-        return
+       
+        bullet = GamePhysicsObject(self.body.position[0], self.body.position[1], -math.degrees(self.body.angle), images.bullet, space, True)
+
+        #self.bullet = True
+        ##bullet.or
+        ##bullet_pos = pymunk.Vec2d(bullet.x, bullet.y)
+        ## Shoot !!!
+        #bullet.is_shot          = True
+        #self.bullet           = bullet
+        #self.bullet.x           = self.body.position[0]
+        #self.bullet.y           = self.body.position[1]
+        #self.bullet.orientation = -math.degrees(self.body.angle)
+        
+        return bullet
 
 
 class Box(GamePhysicsObject):
@@ -266,3 +283,17 @@ class Flag(GameVisibleObject):
     def __init__(self, x, y):
         self.is_on_tank   = False
         super().__init__(x, y,  images.flag)
+
+class Bullet(GamePhysicsObject):
+    """ This class is for bullets shot from a Tank."""
+
+    def __init__(self, x, y, orientation, sprite, space):
+        super().__init__(x, y, orientation, sprite, space, True)
+        #self.is_shot = False
+    
+    def accelerate(self):
+        """ Call this function to make the tank move forward. """
+        self.x = 5
+    
+    def update(self):
+        acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
