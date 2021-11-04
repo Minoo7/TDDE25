@@ -223,23 +223,13 @@ class Tank(GamePhysicsObject):
         """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
         return self.flag != None and (self.start_position - self.body.position).length < 0.2
 
-    def shoot(self, space):
+    def shoot(self, space, bullet):
         """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
-       
-        bullet = GamePhysicsObject(self.body.position[0], self.body.position[1], -math.degrees(self.body.angle), images.bullet, space, True)
-
-        #self.bullet = True
-        ##bullet.or
-        ##bullet_pos = pymunk.Vec2d(bullet.x, bullet.y)
-        ## Shoot !!!
-        #bullet.is_shot          = True
-        #self.bullet           = bullet
-        #self.bullet.x           = self.body.position[0]
-        #self.bullet.y           = self.body.position[1]
-        #self.bullet.orientation = -math.degrees(self.body.angle)
-        
-        return bullet
-
+        bullet.is_shot          = True
+        self.bullet           = bullet
+        self.bullet.x           = self.body.position[0]
+        self.bullet.y           = self.body.position[1]
+        self.bullet.orientation = math.degrees(self.body.angle)
 
 class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """
@@ -287,13 +277,33 @@ class Flag(GameVisibleObject):
 class Bullet(GamePhysicsObject):
     """ This class is for bullets shot from a Tank."""
 
+    ACCELERATION = 0.4
+    NORMAL_MAX_SPEED = 2.0
+
     def __init__(self, x, y, orientation, sprite, space):
         super().__init__(x, y, orientation, sprite, space, True)
-        #self.is_shot = False
-    
-    def accelerate(self):
-        """ Call this function to make the tank move forward. """
-        self.x = 5
-    
+        # Define variable used to apply motion to the tanks
+        self.acceleration = 10
+        self.velocity = 10
+        self.rotation = 0
+
+        self.active = False  
+        self.max_speed        = 10.0
+
+        #self.exploded
+
     def update(self):
+        """ A function to update the objects coordinates. Gets called at every tick of the game. """
+
+        # Creates a vector in the direction we want accelerate / decelerate
         acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
+        # Applies the vector to our velocity
+        self.body.velocity += acceleration_vector
+
+        # Makes sure that we dont exceed our speed limit
+        velocity = clamp(self.max_speed, self.body.velocity.length)
+        self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
+
+        # Updates the rotation
+        self.body.angular_velocity += self.rotation * self.ACCELERATION
+        self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)

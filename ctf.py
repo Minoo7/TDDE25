@@ -2,6 +2,10 @@ import pygame
 from pygame.locals import *
 from pygame.color import *
 import pymunk
+
+#eget:
+import math
+
 # https://gitlab.liu.se/tdde25/ctf/-/wikis/Tutorial
 
 #----- Initialisation -----#
@@ -83,6 +87,7 @@ for i in range(0, len(current_map.start_positions)):
     # Create the tank, images.tanks contains the image representing the tank
     tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
     # Add the tank to the list of tanks
+    game_objects_list.append(tank)
     tanks_list.append(tank)
 
 #<INSERT CREATE FLAG>
@@ -92,14 +97,6 @@ base = gameobjects.GameVisibleObject(tanks_list[0].start_position.x, tanks_list[
 
 game_objects_list.append(flag)
 game_objects_list.append(base)
-
-#--Create a bullet
-#bullet = gameobjects.GamePhysicsObject(3, 4, 0, images.bullet, space, True)
-#game_objects_list.append(bullet)
-
-
-bullet_list = []
-
 
 #----- Main Loop -----#
 
@@ -114,6 +111,7 @@ while running:
         # close button of the wiendow) or if the user press the escape key.
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             running = False
+            exit() #*
         if event.type == KEYDOWN:
             if event.key == K_w:
                 tanks_list[0].accelerate()
@@ -130,16 +128,9 @@ while running:
             if event.key == K_x:
                 #game_objects_list.append(tanks_list[0].shoot(space))
                 #pre = pygame.time.get_ticks()
-                
-            
-                game_objects_list.append(tanks_list[0].shoot(space))
-                tanks_list[0].shoot(space)
-                #tanks_list[0].shoot(space)
-                #tanks_list[0].bullet.x = 5
-            if event.key == K_y:
-                #bullet.orientation = 1
-                bullet_list[0].accelerate()
-                
+                bullet = gameobjects.Bullet(tanks_list[0].body.position[0], tanks_list[0].body.position[1], math.degrees(tanks_list[0].body.angle), images.bullet, space)
+                game_objects_list.append(bullet)
+                tanks_list[0].shoot(space, bullet)
 
         elif event.type == KEYUP:
             if event.key in (K_w, K_s):
@@ -154,16 +145,12 @@ while running:
         # acceleration.
         for obj in game_objects_list:
             obj.update()
-        for tank in tanks_list:
-            tank.try_grab_flag(flag)
-            tank.update()
-            tank.post_update()
-            if tank.has_won():
-                print("Vinst")
-                quit()
-        for b in bullet_list:
-            b.update()
-            b.post_update()
+            #if obj is
+            if type(obj) is gameobjects.Tank:
+                obj.try_grab_flag(flag)
+                if obj.has_won():
+                    print("Vinst")
+                    quit()
                 
         skip_update = 2
     else:
@@ -187,10 +174,6 @@ while running:
     # Update the display of the game objects on the screen
     for obj in game_objects_list:
         obj.update_screen(screen)
-    for tank in tanks_list:
-        tank.update_screen(screen)
-    for b in bullet_list:
-        b.update_screen(screen)
     #   Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
