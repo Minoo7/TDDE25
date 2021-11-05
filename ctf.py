@@ -22,6 +22,9 @@ space = pymunk.Space()
 space.gravity = (0.0,  0.0)
 space.damping = 0.1 # Adds friction to the ground for all objects
 
+#--defs
+arb = pymunk.Arbiter
+
 static_lines = [
     pymunk.Segment(space.static_body, (0, 0), (9, 0), 0.0),
     pymunk.Segment(space.static_body, (0, 0), (0, 9), 0.0),
@@ -46,6 +49,7 @@ FRAMERATE = 50
 #   Define the current level
 current_map         = maps.map0
 #   List of all game objects
+global game_objects_list
 game_objects_list   = []
 tanks_list          = []
 
@@ -98,6 +102,42 @@ base = gameobjects.GameVisibleObject(tanks_list[0].start_position.x, tanks_list[
 game_objects_list.append(flag)
 game_objects_list.append(base)
 
+#-- Add collision handling
+#collision_types = {
+#    "ball": 1,
+#    "brick": 2,
+#    "bottom": 3,
+#    "player": 4,
+#}
+
+#handler = space.add_collision_handler(collision_type)
+#handler.pre_solve = gameobjects.collision_bullet_tank()
+
+# Tank and bullet handler
+def collision_bullet_tank(arb, space, data):
+    #print(arb)
+    #arb.shapes[0].parent
+    #arb.shapes[1].parent
+    #test = game_objects_list.(arb.shapes[1].parent)
+    if arb.shapes[0] in game_objects_list:
+        game_objects_list.remove(arb.shapes[1].parent)
+        space.remove(arb.shapes[1], arb.shapes[1].body)
+        game_objects_list.remove(arb.shapes[0].parent)
+        space.remove(arb.shapes[0], arb.shapes[0].body)
+
+    #print(arb.shapes)
+    #print(arb.shapes[0])
+    #print(arb.shapes[1])
+    #print(arb.shapes[0].parent)
+    #print(arb.shapes[1].parent)
+    #quit()
+    #print(arb.shapes[1].parent)
+    return False
+
+#h_tank_bullet = space.add_collision_handler(arb.shapes[1], arb.shapes[2])
+h_tank_bullet = space.add_collision_handler(1, 2)
+h_tank_bullet.pre_solve = collision_bullet_tank
+
 #----- Main Loop -----#
 
 #-- Control whether the game run
@@ -122,13 +162,10 @@ while running:
             if event.key == K_a:
                 tanks_list[0].turn_left()
             if event.key == K_SPACE:
-                bullet = gameobjects.Bullet(tanks_list[0].body.position[0], tanks_list[0].body.position[1], math.degrees(tanks_list[0].body.angle), images.bullet, space)
-                game_objects_list.append(bullet)
-                tanks_list[0].shoot(space, bullet)
+                tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
+            
             ##testkey:
             if event.key == K_x:
-                #game_objects_list.append(tanks_list[0].shoot(space))
-                #pre = pygame.time.get_ticks()
                 pass
 
         elif event.type == KEYUP:
