@@ -52,7 +52,7 @@ tanks_list          = []
 #-- Resize the screen to the size of the current level
 screen = pygame.display.set_mode(current_map.rect().size)
 
-#<INSERT GENERATE BACKGROUND>
+
 #-- Generate the background
 background = pygame.Surface(screen.get_size())
 
@@ -65,7 +65,7 @@ for x in range(0, current_map.width):
         background.blit(images.grass,  (x*images.TILE_SIZE, y*images.TILE_SIZE))
 
 
-#<INSERT CREATE BOXES>
+
 #-- Create the boxes
 for x in range(0, current_map.width):
     for y in range(0,  current_map.height):
@@ -78,7 +78,7 @@ for x in range(0, current_map.width):
             box = gameobjects.get_box_with_type(x, y, box_type, space)
             game_objects_list.append(box)
 
-#<INSERT CREATE TANKS>
+
 #-- Create the tanks
 # Loop over the starting poistion
 for i in range(0, len(current_map.start_positions)):
@@ -90,8 +90,8 @@ for i in range(0, len(current_map.start_positions)):
     game_objects_list.append(tank)
     tanks_list.append(tank)
 
-#<INSERT CREATE FLAG>
-#-- Create the flag
+
+#-- Create the flag and the bases
 flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
 base = gameobjects.GameVisibleObject(tanks_list[0].start_position.x, tanks_list[0].start_position.y, images.bases[0])
 
@@ -122,15 +122,14 @@ while running:
             if event.key == K_a:
                 tanks_list[0].turn_left()
             if event.key == K_SPACE:
-                print("h")
-                tanks_list[0].shoot()
+                bullet = gameobjects.Bullet(tanks_list[0].body.position[0], tanks_list[0].body.position[1], math.degrees(tanks_list[0].body.angle), images.bullet, space)
+                game_objects_list.append(bullet)
+                tanks_list[0].shoot(space, bullet)
             ##testkey:
             if event.key == K_x:
                 #game_objects_list.append(tanks_list[0].shoot(space))
                 #pre = pygame.time.get_ticks()
-                bullet = gameobjects.Bullet(tanks_list[0].body.position[0], tanks_list[0].body.position[1], math.degrees(tanks_list[0].body.angle), images.bullet, space)
-                game_objects_list.append(bullet)
-                tanks_list[0].shoot(space, bullet)
+                pass
 
         elif event.type == KEYUP:
             if event.key in (K_w, K_s):
@@ -165,12 +164,12 @@ while running:
 
     #-- Update Display
 
-    #<INSERT DISPLAY BACKGROUND>
+    
 
     # Display the background on the screen
     screen.blit(background, (0, 0))
 
-    #<INSERT DISPLAY OBJECTS>
+    
     # Update the display of the game objects on the screen
     for obj in game_objects_list:
         obj.update_screen(screen)
