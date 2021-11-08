@@ -149,6 +149,8 @@ class Tank(GamePhysicsObject):
         self.shooting = False
         self.timer = 0
 
+        self.is_alive = True
+
     def accelerate(self):
         """ Call this function to make the tank move forward. """
         self.acceleration = 1
@@ -175,7 +177,14 @@ class Tank(GamePhysicsObject):
         self.rotation = 0
         self.body.angular_velocity = 0
 
+    def respawn(self):
+        if self.flag != None:
+            if self.flag.is_on_tank != None:
+                self.flag_pos = pymunk.Vec2d(self.flag.x, self.flag.y)
+                self.flag.is_on_tank = False
+                self.flag = None
 
+        self.body.position = self.start_position
 
 
     def update(self):
@@ -240,6 +249,9 @@ class Tank(GamePhysicsObject):
             self.bullet.orientation = math.degrees(self.body.angle)
             lst.append(bullet)
 
+    def get_bullet(self):
+        return self.bullet
+
 class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """
 
@@ -248,6 +260,10 @@ class Box(GamePhysicsObject):
         super().__init__(x, y, 0, sprite, space, movable)
         self.destructable = destructable
         self.shape.collision_type = 3              #Define the collision type of the boxes as 3
+
+    def get_type(self):
+        return self.destructable
+
 
 def get_box_with_type(x, y, type, space):
     (x, y) = (x + 0.5, y + 0.5) # Offsets the coordinate to the center of the tile

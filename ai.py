@@ -67,6 +67,10 @@ class Ai:
             Edges are calculated as we go, using an external function.
         """
         # To be implemented
+        self.tile_neighbors #(that we implemented before) to find neighbors of a specific tile.
+        self.target_tile #to find our target.
+        self.grid_pos #to find the source of our search.
+
         shortest_path = []
         return deque(shortest_path)
             
@@ -104,9 +108,14 @@ class Ai:
             or a wooden box.
         """
         neighbors = [] # Find the coordinates of the tiles' four neighbors
+        neighbors.append(coord_vec + (0, 1)) # skriv om på snyggare sätt*
+        neighbors.append(coord_vec + (-1, 0))
+        neighbors.append(coord_vec + (0, -1))
+        neighbors.append(coord_vec + (1, 0))
         return filter(self.filter_tile_neighbors, neighbors)
 
     def filter_tile_neighbors (self, coord):
-        return True
+        if coord.x > self.MAX_X and coord.y > self.MAX_Y and self.currentmap.boxAt == 0:
+            return True
 
 SimpleAi = Ai # Legacy
