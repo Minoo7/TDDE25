@@ -1,3 +1,4 @@
+from pygame import time
 import images
 import pygame
 import pymunk
@@ -139,7 +140,8 @@ class Tank(GamePhysicsObject):
         self.acceleration = 0 # 1 forward, 0 for stand still, -1 for backwards
         self.rotation = 0 # 1 clockwise, 0 for no rotation, -1 counter clockwise
 
-
+        self.x = x
+        self.y = y
         self.flag                 = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
         self.max_speed        = Tank.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
         self.start_position       = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
@@ -299,6 +301,23 @@ class Flag(GameVisibleObject):
     def __init__(self, x, y):
         self.is_on_tank   = False
         super().__init__(x, y,  images.flag)
+
+class Explosion(GameVisibleObject):
+    """ This class extends GameVisibleObject for explosions."""
+
+    def __init__(self, x, y):
+        self.timer = 0
+        self.opacity = 0
+        super().__init__(x, y,  images.explosion)
+    
+    def fade(self, time, lst):
+        if 2000 < (time - self.timer):
+            self.sprite.set_alpha(self.sprite.get_alpha() - 10)
+        if self.sprite.get_alpha() < 1: # if invisible
+            #lst.remove(self)
+            return True
+            
+
 
 class Bullet(GamePhysicsObject):
     """ This class is for bullets shot from a Tank."""

@@ -41,6 +41,8 @@ class Ai:
         self.move_cycle = self.move_cycle_gen()
         self.update_grid_pos()
 
+        
+
     def update_grid_pos(self):
         """ This should only be called in the beginning, or at the end of a move_cycle. """
         self.grid_pos = self.get_tile_of_position(self.tank.body.position)
@@ -60,6 +62,7 @@ class Ai:
             to move to our goal.
         """ 
         while True:
+            path = find_shortest_path()
             yield
         
     def find_shortest_path(self):
@@ -67,11 +70,29 @@ class Ai:
             Edges are calculated as we go, using an external function.
         """
         # To be implemented
-        self.tile_neighbors #(that we implemented before) to find neighbors of a specific tile.
-        self.target_tile #to find our target.
-        self.grid_pos #to find the source of our search.
-
+        self.target_tile = self.get_target_tile() #to find our target.
+        self.update_grid_pos() #to find the source of our search.
+        self.tile_neighbors = self.get_tile_neighbors(self.grid_pos) #(that we implemented before) to find neighbors of a specific tile.
         shortest_path = []
+        queue = deque()
+        visited = set()
+        path = {}
+
+        queue.appendleft(self.grid_pos)
+
+        while queue:
+            node = queue.popleft()
+            if node == self.target_tile:
+                shortest_path = path[node.int_tuple]
+                break
+            for n in self.tile_neighbors(node):
+                if not (n in visited):
+                    queue.appendleft(n)
+                    visited.append(n)
+                    shortest_path.append(visited)
+                    path[n.int_tuple] = path[node.int_tuple].copy() + [n]
+
+                    
         return deque(shortest_path)
             
     def get_target_tile(self):
@@ -115,7 +136,8 @@ class Ai:
         return filter(self.filter_tile_neighbors, neighbors)
 
     def filter_tile_neighbors (self, coord):
-        if coord.x > self.MAX_X and coord.y > self.MAX_Y and self.currentmap.boxAt == 0:
+        if coord.x > self.MAX_X and coord.y > self.MAX_Y and self.currentmap.boxAt(coord) == 0:
             return True
+        return False
 
 SimpleAi = Ai # Legacy

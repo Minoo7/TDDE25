@@ -1,11 +1,13 @@
 import pygame
+from pygame import time
+from pygame.event import wait
 from pygame.locals import *
 from pygame.color import *
 import pymunk
 
 #eget:
 import math
-from argparse import ArgumentParser
+import argparse
 
 # https://gitlab.liu.se/tdde25/ctf/-/wikis/Tutorial
 
@@ -29,6 +31,7 @@ arb = pymunk.Arbiter
 
 #-- Import from the ctf framework
 import ai
+
 import images
 import gameobjects
 import maps
@@ -38,7 +41,14 @@ FRAMERATE = 50
 
 #-- Variables
 #   Define the current level
-current_map         = maps.map1
+current_map         = maps.map0
+
+# Define flags from commandline
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--hot-multiplayer', default=True, action='store_true') # GLöm inte ändra tillbaka till false
+parser.add_argument('--singleplayer', default=False, action='store_true')
+args = parser.parse_args()
 
 # Intiliaze world border
 
@@ -102,6 +112,7 @@ def create_tanks():
         tanks_list.append(tank)
         if i > 0:
             tank_ai = ai.Ai(tank, game_objects_list, tanks_list, space, current_map)
+            ai_list.append(tank_ai)
 
 
 
@@ -114,8 +125,13 @@ def collision_bullet_tank(arb, space, data):
     if not tank.get_bullet() == bullet_shape.parent: # not shoot itself
         tank.respawn()
         space.remove(bullet_shape, bullet_shape.body)
+
+        explosion = gameobjects.Explosion(tank.x, tank.y)
+        game_objects_list.append(explosion)
+        
         if bullet_shape.parent in game_objects_list: # fix error
             game_objects_list.remove(bullet_shape.parent)
+            #gameobjects.Explosion.explosion_remove(game_objects_list, explosion, pygame.time.get_ticks())
     return False
 
 def collision_bullet_box(arb, space, data):
@@ -141,39 +157,45 @@ def event_handler(running):
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             running = False
             exit() #*
+        
         if event.type == KEYDOWN:
-            if event.key == K_w:
-                tanks_list[0].accelerate()
-            if event.key == K_s:
-                tanks_list[0].decelerate()
-            if event.key == K_a:
-                tanks_list[0].turn_left()
-            if event.key == K_d:
-                tanks_list[0].turn_right()
-            if event.key == K_SPACE:
-                tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
-            #player 2 test:
-            if event.key == K_UP:
-                tanks_list[1].accelerate()
-            if event.key == K_DOWN:
-                tanks_list[1].decelerate()
-            if event.key == K_LEFT:
-                tanks_list[1].turn_left()
-            if event.key == K_RIGHT:
-                tanks_list[1].turn_right()
-            if event.key == K_RSHIFT:
-                tanks_list[1].shoot(game_objects_list, pygame.time.get_ticks(), space)
+            if args.singleplayer or args.hot_multiplayer:
+                if event.key == K_w:
+                    tanks_list[0].accelerate()
+                if event.key == K_s:
+                    tanks_list[0].decelerate()
+                if event.key == K_a:
+                    tanks_list[0].turn_left()
+                if event.key == K_d:
+                    tanks_list[0].turn_right()
+                if event.key == K_SPACE:
+                    tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
+                if event.key == K_x:
+                    ai_list[0].find_shortest_path()
+
+            if args.hot_multiplayer:
+                if event.key == K_UP:
+                    tanks_list[1].accelerate()
+                if event.key == K_DOWN:
+                    tanks_list[1].decelerate()
+                if event.key == K_LEFT:
+                    tanks_list[1].turn_left()
+                if event.key == K_RIGHT:
+                    tanks_list[1].turn_right()
+                if event.key == K_RETURN:
+                    tanks_list[1].shoot(game_objects_list, pygame.time.get_ticks(), space)
                 
         elif event.type == KEYUP:
-            if event.key in (K_w, K_s):
-                tanks_list[0].stop_moving()
-            if event.key in (K_a, K_d):
-                tanks_list[0].stop_turning()
-            #player 2
-            if event.key in (K_UP, K_DOWN):
-                tanks_list[1].stop_moving()
-            if event.key in (K_LEFT, K_RIGHT):
-                tanks_list[1].stop_turning()
+            if args.singleplayer or args.hot_multiplayer:
+                if event.key in (K_w, K_s):
+                    tanks_list[0].stop_moving()
+                if event.key in (K_a, K_d):
+                    tanks_list[0].stop_turning()
+                if args.hot_multiplayer:
+                    if event.key in (K_UP, K_DOWN):
+                        tanks_list[1].stop_moving()
+                    if event.key in (K_LEFT, K_RIGHT):
+                        tanks_list[1].stop_turning()
     
     
 #-- Update physics
@@ -183,7 +205,10 @@ def physics_update(skip_update):
         # acceleration.
         for obj in game_objects_list:
             obj.update()
-            #if obj is
+            if type(obj) is gameobjects.Explosion:
+                if obj.fade(pygame.time.get_ticks(), game_objects_list):
+                    game_objects_list.remove(obj)
+                #obj.set_alpha(100)
             if type(obj) is gameobjects.Tank:
                 if not obj.is_alive:
                     #tank_shape.parent.respawn(space)
