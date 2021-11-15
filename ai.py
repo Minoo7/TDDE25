@@ -47,23 +47,11 @@ class Ai:
         """ This should only be called in the beginning, or at the end of a move_cycle. """
         self.grid_pos = self.get_tile_of_position(self.tank.body.position)
 
-    def decide(self):
-        """ Main decision function that gets called on every tick of the game. """
-        pass # To be implemented
-
     def maybe_shoot(self):
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot. 
         """
         pass # To be implemented
-
-    def move_cycle_gen (self):
-        """ A generator that iteratively goes through all the required steps
-            to move to our goal.
-        """ 
-        while True:
-            path = find_shortest_path()
-            yield
         
     def find_shortest_path(self):
         """ A simple Breadth First Search using integer coordinates as our nodes.
@@ -85,16 +73,50 @@ class Ai:
             if node == self.target_tile:
                 shortest_path = path[node.int_tuple]
                 break
-            for n in self.tile_neighbors(node):
-                if not (n in visited):
-                    queue.appendleft(n)
-                    visited.append(n)
-                    shortest_path.append(visited)
-                    path[n.int_tuple] = path[node.int_tuple].copy() + [n]
+            #for neighbour in self.tile_neighbors(node):
+            #    if not (neighbour in visited):
+            #        queue.appendleft(neighbour)
+            #        visited.append(neighbour)
+            #        shortest_path.append(visited)
+            #        path[neighbour.int_tuple] = path[node.int_tuple].copy() + [neighbour]
 
-                    
         return deque(shortest_path)
+    
+    def move_cycle_gen(self):
+        """ A generator that iteratively goes through all the required steps
+            to move to our goal.
+        """ 
+        while True:
+            path = self.find_shortest_path()
+            if not path:
+                yield
+                continue # Start from the top of our cycle
+            next_coord = path.popleft()
+            yield
+            #turn
+            self.stop_moving()
             
+            while not val == MIN_ANGLE_DIF:
+                angle = self.angle_between_vectors(self.body, next_coord)
+                val = self.periodic_difference_of_angles(self.body, angle)
+                if val < 0:
+                    self.turn_right()
+                else:
+                    self.turn_left()
+            
+            self.stop_turning()
+                
+            #while not correct_angle():
+            #    yield
+            #accelerate()
+            #while not correct_pos():
+            #    yield
+    
+    def decide(self):
+        """ Main decision function that gets called on every tick of the game. """
+        move_cycle = self.move_cycle_gen()
+        next(move_cycle)
+
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
             return the position of our home base.

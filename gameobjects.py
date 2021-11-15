@@ -3,6 +3,7 @@ import images
 import pygame
 import pymunk
 import math
+import copy
 
 DEBUG = False # Change this to set it in debug mode
 
@@ -27,7 +28,7 @@ class GameObject:
             Should update the current state (after a tick) of the object."""
         return
 
-    def post_update(self):
+    def post_update(self, time):
         """ Should be implemented in a subclass. Make updates that depend on
             other objects than itself."""
         return
@@ -151,6 +152,12 @@ class Tank(GamePhysicsObject):
         self.shooting = False
         self.timer = 0
 
+        self.wins = 0
+
+        self.respawning = False
+        self.blink_count = 0
+        self.resp_time = 0
+
         self.is_alive = True
 
     def accelerate(self):
@@ -179,16 +186,6 @@ class Tank(GamePhysicsObject):
         self.rotation = 0
         self.body.angular_velocity = 0
 
-    def respawn(self):
-        if self.flag != None:
-            if self.flag.is_on_tank != None:
-                self.flag_pos = pymunk.Vec2d(self.flag.x, self.flag.y)
-                self.flag.is_on_tank = False
-                self.flag = None
-
-        self.body.position = self.start_position
-
-
     def update(self):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
 
@@ -205,8 +202,18 @@ class Tank(GamePhysicsObject):
         self.body.angular_velocity += self.rotation * self.ACCELERATION
         self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
 
+        if not self.is_alive:
+            if self.flag != None:
+                if self.flag.is_on_tank != None:
+                    self.flag_pos = pymunk.Vec2d(self.flag.x, self.flag.y)
+                    self.flag.is_on_tank = False
+                    self.flag = None
+            self.body.position = self.start_position
+            self.respawning = True
+            self.is_alive = True
 
-    def post_update(self):
+
+    def post_update(self, time):
         if(self.bullet != None):
             self.bullet.x           = self.body.position[0]
             self.bullet.y           = self.body.position[1]
@@ -218,6 +225,22 @@ class Tank(GamePhysicsObject):
         # Else ensure that the tank has its normal max speed
         else:
             self.max_speed = Tank.NORMAL_MAX_SPEED
+
+        if self.respawning:
+            if 500 < (time - self.resp_time):
+                self.blink_count += 1
+                alpha = self.sprite.get_alpha()
+                if alpha == 200 or alpha == 255:
+                    val = 50
+                elif alpha == 50:
+                    val = 200
+                self.sprite.set_alpha(val)
+                self.resp_time = time
+            if self.blink_count > 6:
+                self.blink_count = 0
+                self.sprite.set_alpha(255)
+                self.resp_time = 0
+                self.respawning = False
 
 
     def try_grab_flag(self, flag):
@@ -233,9 +256,12 @@ class Tank(GamePhysicsObject):
                 self.flag           = flag
                 flag.is_on_tank     = True
                 self.max_speed  = Tank.FLAG_MAX_SPEED
+                flag_sound = pygame.mixer.Sound("flag_sound.mp3")
+                flag_sound.play()
 
     def has_won(self):
         """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
+        self.wins += 1
         return self.flag != None and (self.start_position - self.body.position).length < 0.2
 
     def shoot(self, lst, time, space):
@@ -250,9 +276,12 @@ class Tank(GamePhysicsObject):
             self.bullet.y           = self.body.position[1]
             self.bullet.orientation = math.degrees(self.body.angle)
             lst.append(bullet)
+            shoot_sound = pygame.mixer.Sound("shoot_sound.mp3")
+            shoot_sound.play()
 
     def get_bullet(self):
         return self.bullet
+
 
 class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """
@@ -308,15 +337,16 @@ class Explosion(GameVisibleObject):
     def __init__(self, x, y):
         self.timer = 0
         self.opacity = 0
-        super().__init__(x, y,  images.explosion)
+        self.active = True
+        super().__init__(x, y,  copy.copy(images.explosion))
     
-    def fade(self, time, lst):
+    def post_update(self, time):
         if 2000 < (time - self.timer):
             self.sprite.set_alpha(self.sprite.get_alpha() - 10)
         if self.sprite.get_alpha() < 1: # if invisible
-            #lst.remove(self)
-            return True
-            
+            self.timer = 0
+            self.opacity = 0
+            self.active = False
 
 
 class Bullet(GamePhysicsObject):

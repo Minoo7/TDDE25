@@ -28,6 +28,12 @@ space.damping = 0.1 # Adds friction to the ground for all objects
 #--defs
 arb = pymunk.Arbiter
 
+ 
+# Loading and playing background music:
+
+pygame.mixer.music.load("background_music.mp3")
+pygame.mixer.music.play(-1, 0.0)
+
 
 #-- Import from the ctf framework
 import ai
@@ -41,7 +47,7 @@ FRAMERATE = 50
 
 #-- Variables
 #   Define the current level
-current_map         = maps.map0
+current_map         = maps.map3
 
 # Define flags from commandline
 
@@ -123,15 +129,18 @@ def collision_bullet_tank(arb, space, data):
     tank = arb.shapes[0].parent
     bullet_shape = arb.shapes[1]
     if not tank.get_bullet() == bullet_shape.parent: # not shoot itself
-        tank.respawn()
-        space.remove(bullet_shape, bullet_shape.body)
+        if not tank.respawning:
+            tank.is_alive = False
+            space.remove(bullet_shape, bullet_shape.body)
 
-        explosion = gameobjects.Explosion(tank.x, tank.y)
-        game_objects_list.append(explosion)
-        
-        if bullet_shape.parent in game_objects_list: # fix error
-            game_objects_list.remove(bullet_shape.parent)
-            #gameobjects.Explosion.explosion_remove(game_objects_list, explosion, pygame.time.get_ticks())
+            explosion = gameobjects.Explosion(tank.x, tank.y)
+            game_objects_list.append(explosion)
+            explosion_sound = pygame.mixer.Sound("explosion_sound.wav")
+            explosion_sound.play()
+
+            if bullet_shape.parent in game_objects_list: # fix error
+                game_objects_list.remove(bullet_shape.parent)
+                #gameobjects.Explosion.explosion_remove(game_objects_list, explosion, pygame.time.get_ticks())
     return False
 
 def collision_bullet_box(arb, space, data):
@@ -143,8 +152,11 @@ def collision_bullet_box(arb, space, data):
         game_objects_list.remove(box)
     
     space.remove(bullet_shape, bullet_shape.body)
-    if bullet_shape.parent in game_objects_list: # fix error
+    if bullet_shape.parent in game_objects_list: # fixar error
         game_objects_list.remove(bullet_shape.parent)
+        
+        explosion_sound = pygame.mixer.Sound("explosion_sound.wav")
+        explosion_sound.play()
     return False
 
 
@@ -171,7 +183,8 @@ def event_handler(running):
                 if event.key == K_SPACE:
                     tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
                 if event.key == K_x:
-                    ai_list[0].find_shortest_path()
+                    print(tanks_list[0].body.angle)
+                    #ai_list[0].find_shortest_path()
 
             if args.hot_multiplayer:
                 if event.key == K_UP:
@@ -199,27 +212,17 @@ def event_handler(running):
     
     
 #-- Update physics
-def physics_update(skip_update):
+def physics_update(skip_update): #update
     if skip_update == 0:
         # Loop over all the game objects and update their speed in function of their
         # acceleration.
         for obj in game_objects_list:
             obj.update()
-            if type(obj) is gameobjects.Explosion:
-                if obj.fade(pygame.time.get_ticks(), game_objects_list):
-                    game_objects_list.remove(obj)
-                #obj.set_alpha(100)
             if type(obj) is gameobjects.Tank:
-                if not obj.is_alive:
-                    #tank_shape.parent.respawn(space)
-                    #print("yes")
-                    print(space)
-                    #obj.respawn(space)
                 obj.try_grab_flag(flag)
                 if obj.has_won():
-                    print("Vinst")
-                    quit()
-                
+                    victory_sound = pygame.mixer.Sound("victory_sound.wav")
+                    victory_sound.play()
         skip_update = 2
     else:
         skip_update -= 1
@@ -229,8 +232,11 @@ def object_update():
     #   Check collisions and update the objects position
     space.step(1 / FRAMERATE)
     #   Update object that depends on an other object position (for instance a flag)
-    for obj in game_objects_list:
-        obj.post_update()
+    for obj in game_objects_list: # for timers
+        obj.post_update(pygame.time.get_ticks())
+        if type(obj) is gameobjects.Explosion:
+            if not obj.active:
+                game_objects_list.remove(obj)
 
 
 def display_update():
