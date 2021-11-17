@@ -58,36 +58,35 @@ class Ai:
         """ A simple Breadth First Search using integer coordinates as our nodes.
             Edges are calculated as we go, using an external function.
         """
-        # To be implemented
-        target_tile = self.get_target_tile() #to find our target.
-        self.update_grid_pos() #to find the source of our search.
-        pos = self.grid_pos
-        tile_neighbors = self.get_tile_neighbors(pos) #(that we implemented before) to find neighbors of a specific tile.
         shortest_path = []
+        #self.update_grid_pos() #to find the source of our search.
+        #tile_neighbors = self.get_tile_neighbors(pos) #(that we implemented before) to find neighbors of a specific tile.
+        init_pos = self.grid_pos
         queue = deque()
-        visited = set()
+        queue.appendleft(init_pos)
+        visited = set(init_pos.int_tuple)
+        #visited = set()
         path = {}
 
-        queue.appendleft(pos)
-        #print(queue)
-
-        while True:
+        #while True:
+        while len(queue) > 0:
             node = queue.popleft()
-            neigh = self.get_tile_neighbors(node)
-            if not path:
-                path[node.int_tuple] = node
-            if node == target_tile:
+            if node == self.get_target_tile(): # our target (search is done)
                 shortest_path = path[node]
                 break
             for neighbour in self.get_tile_neighbors(node):
-                if not (neighbour.int_tuple in visited):
+                if not neighbour.int_tuple in visited:
                     queue.appendleft(neighbour)
                     visited.add(neighbour.int_tuple)
-                    #print("node: ", node)
-                    #print("path[node]: ", path[node.int_tuple])
-                    path[neighbour.int_tuple] = neighbour + path[node.int_tuple]
+                    #path[neighbour.int_tuple] = path[node.int_tuple].copy() + [neighbour]
+                    print(f"node.int_tuple: {node.int_tuple}")
+                    print(f"neighbour.int_tuple: {neighbour.int_tuple}")
+                    print(f"node: {node}")
+                    #print(path[node.int_tuple].copy())
+                    #path[neighbour.int_tuple] = path[node.int_tuple].copy() + node
+                    #path[neighbour.int_tuple] = neighbour + path[node.int_tuple]
 
-        #print(shortest_path)
+        print("shortestpath: ", shortest_path)
         return deque(shortest_path)
 
     def turn(self, angle):
@@ -192,7 +191,10 @@ class Ai:
         return filter(self.filter_tile_neighbors, neighbours)
 
     def filter_tile_neighbors(self, coord):
-        if coord.x <= self.MAX_X and coord.y <= self.MAX_Y and self.currentmap.boxAt(coord.x, coord.y) == 0:
+        tile = self.get_tile_of_position(coord)
+        if 0 < coord.x and coord.x <= self.MAX_X and \
+            0 < coord.y and coord.y <= self.MAX_Y and \
+                self.currentmap.boxAt(tile[0], tile[1]) == 0:
             return True
         return False
 

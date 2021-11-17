@@ -31,8 +31,8 @@ arb = pymunk.Arbiter
  
 # Loading and playing background music:
 
-pygame.mixer.music.load("background_music.mp3")
-pygame.mixer.music.play(-1, 0.0)
+#pygame.mixer.music.load("background_music.mp3")
+#pygame.mixer.music.play(-1, 0.0)
 
 
 #-- Import from the ctf framework
