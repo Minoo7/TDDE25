@@ -3,6 +3,7 @@ import pymunk
 from pymunk import Vec2d
 import gameobjects
 from collections import defaultdict, deque
+import copy
 
 # NOTE: use only 'map0' during development!
 
@@ -58,64 +59,96 @@ class Ai:
             Edges are calculated as we go, using an external function.
         """
         # To be implemented
-        self.target_tile = self.get_target_tile() #to find our target.
+        target_tile = self.get_target_tile() #to find our target.
         self.update_grid_pos() #to find the source of our search.
-        self.tile_neighbors = self.get_tile_neighbors(self.grid_pos) #(that we implemented before) to find neighbors of a specific tile.
+        pos = self.grid_pos
+        tile_neighbors = self.get_tile_neighbors(pos) #(that we implemented before) to find neighbors of a specific tile.
         shortest_path = []
         queue = deque()
         visited = set()
         path = {}
 
-        queue.appendleft(self.grid_pos)
+        queue.appendleft(pos)
+        #print(queue)
 
-        while queue:
+        while True:
             node = queue.popleft()
-            if node == self.target_tile:
-                shortest_path = path[node.int_tuple]
+            neigh = self.get_tile_neighbors(node)
+            if not path:
+                path[node.int_tuple] = node
+            if node == target_tile:
+                shortest_path = path[node]
                 break
-            #for neighbour in self.tile_neighbors(node):
-            #    if not (neighbour in visited):
-            #        queue.appendleft(neighbour)
-            #        visited.append(neighbour)
-            #        shortest_path.append(visited)
-            #        path[neighbour.int_tuple] = path[node.int_tuple].copy() + [neighbour]
+            for neighbour in self.get_tile_neighbors(node):
+                if not (neighbour.int_tuple in visited):
+                    queue.appendleft(neighbour)
+                    visited.add(neighbour.int_tuple)
+                    #print("node: ", node)
+                    #print("path[node]: ", path[node.int_tuple])
+                    path[neighbour.int_tuple] = neighbour + path[node.int_tuple]
 
+        #print(shortest_path)
         return deque(shortest_path)
+
+    def turn(self, angle):
+        self.stop_moving()
+        if angle < 0:
+            self.turn_right()
+        else:
+            self.turn_left()
+    
+    def correct_angle(self):
+        self.angle = self.periodic_difference_of_angles(self.body, self.temp)
+        if -MIN_ANGLE_DIF < self.angle and self.angle < MIN_ANGLE_DIF:
+            return True
+        else:
+            return False
     
     def move_cycle_gen(self):
         """ A generator that iteratively goes through all the required steps
             to move to our goal.
         """ 
+        #print(self.find_shortest_path())
         while True:
             path = self.find_shortest_path()
             if not path:
+                #break # Start from the top of our cycle
                 yield
-                continue # Start from the top of our cycle
+                continue # Start from top
             next_coord = path.popleft()
             yield
             #turn
-            self.stop_moving()
-            
-            while not val == MIN_ANGLE_DIF:
-                angle = self.angle_between_vectors(self.body, next_coord)
-                val = self.periodic_difference_of_angles(self.body, angle)
-                if val < 0:
-                    self.turn_right()
-                else:
-                    self.turn_left()
-            
+            self.temp = self.angle_between_vectors(self.body, next_coord)
+            self.angle = self.periodic_difference_of_angles(self.body, self.temp)
+            self.turn(self.angle)
+            while not self.correct_angle(): #while not correct_angle()
+                yield
+
             self.stop_turning()
+
+            while True: 
                 
-            #while not correct_angle():
-            #    yield
-            #accelerate()
-            #while not correct_pos():
-            #    yield
+                middle_next = next_coord + Vec2d(0.5, 0.5) # ---------------- Kan vara fel -               
+                
+                if not last_dist:
+                    last_dist = self.tank.body.position.get_distance(middle_next)
+
+                current_dist = self.tank.body.position.get_distance(middle_next)
+                if current_dist > last_dist:
+                    self.update_grid_pos()
+                    break
+                else:
+                    self.tank.accelerate()
+                    last_dist = current_dist
+            
+
     
     def decide(self):
         """ Main decision function that gets called on every tick of the game. """
         move_cycle = self.move_cycle_gen()
+        #self.maybe_shoot()
         next(move_cycle)
+        #self.move_cycle_gen()
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
@@ -150,15 +183,16 @@ class Ai:
             A bordering square is only considered accessible if it is grass
             or a wooden box.
         """
-        neighbors = [] # Find the coordinates of the tiles' four neighbors
-        neighbors.append(coord_vec + (0, 1)) # skriv om på snyggare sätt*
-        neighbors.append(coord_vec + (-1, 0))
-        neighbors.append(coord_vec + (0, -1))
-        neighbors.append(coord_vec + (1, 0))
-        return filter(self.filter_tile_neighbors, neighbors)
+        neighbours = [] # Find the coordinates of the tiles' four neighbors
+        #pos = self.get_tile_of_position(coord_vec)
+        neighbours.append(coord_vec + (0, 1)) # skriv om på snyggare sätt*
+        neighbours.append(coord_vec + (-1, 0))
+        neighbours.append(coord_vec + (0, -1))
+        neighbours.append(coord_vec + (1, 0))
+        return filter(self.filter_tile_neighbors, neighbours)
 
-    def filter_tile_neighbors (self, coord):
-        if coord.x > self.MAX_X and coord.y > self.MAX_Y and self.currentmap.boxAt(coord) == 0:
+    def filter_tile_neighbors(self, coord):
+        if coord.x <= self.MAX_X and coord.y <= self.MAX_Y and self.currentmap.boxAt(coord.x, coord.y) == 0:
             return True
         return False
 

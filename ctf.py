@@ -47,7 +47,7 @@ FRAMERATE = 50
 
 #-- Variables
 #   Define the current level
-current_map         = maps.map3
+current_map         = maps.map0
 
 # Define flags from commandline
 
@@ -277,8 +277,8 @@ while running:
     event_handler(running)
     
     
-    for ai in ai_list:
-        ai.decide()
+    for tank_ai in ai_list:
+        tank_ai.decide()
     
             
     physics_update(skip_update)
