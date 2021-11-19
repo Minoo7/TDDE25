@@ -4,6 +4,7 @@ import pygame
 import pymunk
 import math
 import copy
+import sounds
 
 DEBUG = False # Change this to set it in debug mode
 
@@ -256,8 +257,7 @@ class Tank(GamePhysicsObject):
                 self.flag           = flag
                 flag.is_on_tank     = True
                 self.max_speed  = Tank.FLAG_MAX_SPEED
-                flag_sound = pygame.mixer.Sound("flag_sound.mp3")
-                flag_sound.play()
+                sounds.flag_sound()
 
     def has_won(self):
         """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
@@ -276,8 +276,7 @@ class Tank(GamePhysicsObject):
             self.bullet.y           = self.body.position[1]
             self.bullet.orientation = math.degrees(self.body.angle)
             lst.append(bullet)
-            shoot_sound = pygame.mixer.Sound("shoot_sound.mp3")
-            shoot_sound.play()
+            sounds.shoot_sound()
 
     def get_bullet(self):
         return self.bullet
@@ -291,6 +290,8 @@ class Box(GamePhysicsObject):
         super().__init__(x, y, 0, sprite, space, movable)
         self.destructable = destructable
         self.shape.collision_type = 3              #Define the collision type of the boxes as 3
+        self.x = x
+        self.y = y
 
     def get_type(self):
         return self.destructable

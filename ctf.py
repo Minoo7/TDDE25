@@ -29,18 +29,22 @@ space.damping = 0.1 # Adds friction to the ground for all objects
 arb = pymunk.Arbiter
 
  
-# Loading and playing background music:
-
-#pygame.mixer.music.load("background_music.mp3")
-#pygame.mixer.music.play(-1, 0.0)
-
 
 #-- Import from the ctf framework
 import ai
-
+import sounds
 import images
 import gameobjects
 import maps
+
+# Loading and playing background music:
+sounds.background_music()
+
+# Sets a game caption
+pygame.display.set_caption("Capture The Flag")
+
+#-- Welcome Screen
+#welcome_screen = pygame.image.load("welcome.png")
 
 #-- Constants
 FRAMERATE = 50
@@ -49,7 +53,7 @@ FRAMERATE = 50
 #   Define the current level
 current_map         = maps.map0
 
-# Define flags from commandline
+# Define flags from commandline deciding between multiplayer and singleplayer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--hot-multiplayer', default=True, action='store_true') # GLöm inte ändra tillbaka till false
@@ -76,8 +80,8 @@ game_objects_list   = []
 tanks_list          = []
 ai_list = []
 
-#-- Resize the screen to the size of the current level
-screen = pygame.display.set_mode(current_map.rect().size)
+#-- Resize the screen to a fullscreen
+screen = pygame.display.set_mode((current_map.rect().size),pygame.FULLSCREEN)
 
 #-- Generate the background
 background = pygame.Surface(screen.get_size())
@@ -133,14 +137,13 @@ def collision_bullet_tank(arb, space, data):
             tank.is_alive = False
             space.remove(bullet_shape, bullet_shape.body)
 
-            explosion = gameobjects.Explosion(tank.x, tank.y)
-            game_objects_list.append(explosion)
-            explosion_sound = pygame.mixer.Sound("explosion_sound.wav")
-            explosion_sound.play()
+            tank_explosion = gameobjects.Explosion(tank.x, tank.y)
+            game_objects_list.append(tank_explosion)
+            sounds.explosion_sound()
 
             if bullet_shape.parent in game_objects_list: # fix error
                 game_objects_list.remove(bullet_shape.parent)
-                #gameobjects.Explosion.explosion_remove(game_objects_list, explosion, pygame.time.get_ticks())
+                
     return False
 
 def collision_bullet_box(arb, space, data):
@@ -150,13 +153,15 @@ def collision_bullet_box(arb, space, data):
     if box.get_type():
         space.remove(box.shape, box.body)
         game_objects_list.remove(box)
+        box_explosion = gameobjects.Explosion(box.x, box.y)
+        game_objects_list.append(box_explosion)
+        sounds.explosion_sound()
     
     space.remove(bullet_shape, bullet_shape.body)
     if bullet_shape.parent in game_objects_list: # fixar error
         game_objects_list.remove(bullet_shape.parent)
-        
-        explosion_sound = pygame.mixer.Sound("explosion_sound.wav")
-        explosion_sound.play()
+        sounds.explosion_sound()
+
     return False
 
 
@@ -221,8 +226,8 @@ def physics_update(skip_update): #update
             if type(obj) is gameobjects.Tank:
                 obj.try_grab_flag(flag)
                 if obj.has_won():
-                    victory_sound = pygame.mixer.Sound("victory_sound.wav")
-                    victory_sound.play()
+                    sounds.victory_sound()
+
         skip_update = 2
     else:
         skip_update -= 1
@@ -275,6 +280,7 @@ skip_update = 0
 while running:
     
     event_handler(running)
+    
     
     
     for tank_ai in ai_list:

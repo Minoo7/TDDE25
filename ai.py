@@ -69,22 +69,44 @@ class Ai:
         path = {}
 
         #while True:
+        secondloop = 0
         while len(queue) > 0:
+            #print(f"before queue popleft node: {parent}")
             node = queue.popleft()
+            #print(f"after queue popleft node: {node}")
+            if not path:
+                path[node.int_tuple] = node
+                parent = node
+                temp = []
+                temp.append(node)
+            else:
+                #path[parent.int_tuple] = []
+                #path[parent.int_tuple] = (path[node.int_tuple] + [parent])
+                temp.append(parent)
+                parent = node
             if node == self.get_target_tile(): # our target (search is done)
-                shortest_path = path[node]
+                shortest_path = path[node.int_tuple]
                 break
             for neighbour in self.get_tile_neighbors(node):
                 if not neighbour.int_tuple in visited:
                     queue.appendleft(neighbour)
                     visited.add(neighbour.int_tuple)
-                    #path[neighbour.int_tuple] = path[node.int_tuple].copy() + [neighbour]
-                    print(f"node.int_tuple: {node.int_tuple}")
-                    print(f"neighbour.int_tuple: {neighbour.int_tuple}")
-                    print(f"node: {node}")
-                    #print(path[node.int_tuple].copy())
-                    #path[neighbour.int_tuple] = path[node.int_tuple].copy() + node
-                    #path[neighbour.int_tuple] = neighbour + path[node.int_tuple]
+                    temp.append(neighbour)
+                    
+                    #print("neighbour i lista: ", [neighbour])
+                    #path[neighbour.int_tuple] = path[parent.int_tuple] + [neighbour]
+                    path[neighbour.int_tuple] = temp
+                    secondloop += 1
+                    if secondloop == 2:
+                        #node: 8,1
+                        # path parent: 8,0 8,1
+                        #path[8,2] = 8,0 8,1, 8,2
+                        print("--second loop--")
+                        print(f"node: {node}")
+                        print(f"path[parent.int_tuple]: {path[parent.int_tuple]}")
+                        print(f"path[neighbour.int_tuple]: {path[neighbour.int_tuple]}")
+
+            parent = node
 
         print("shortestpath: ", shortest_path)
         return deque(shortest_path)
@@ -192,8 +214,8 @@ class Ai:
 
     def filter_tile_neighbors(self, coord):
         tile = self.get_tile_of_position(coord)
-        if 0 < coord.x and coord.x <= self.MAX_X and \
-            0 < coord.y and coord.y <= self.MAX_Y and \
+        if 0 <= coord.x and coord.x <= self.MAX_X and \
+            0 <= coord.y and coord.y <= self.MAX_Y and \
                 self.currentmap.boxAt(tile[0], tile[1]) == 0:
             return True
         return False
