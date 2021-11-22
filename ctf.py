@@ -81,7 +81,8 @@ tanks_list          = []
 ai_list = []
 
 #-- Resize the screen to a fullscreen
-screen = pygame.display.set_mode((current_map.rect().size),pygame.FULLSCREEN)
+#screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((current_map.rect().size), pygame.RESIZABLE)
 
 #-- Generate the background
 background = pygame.Surface(screen.get_size())
@@ -120,7 +121,7 @@ def create_tanks():
         tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
         game_objects_list.append(tank)
         tanks_list.append(tank)
-        if i > 0:
+        if i == 0: #temp > **
             tank_ai = ai.Ai(tank, game_objects_list, tanks_list, space, current_map)
             ai_list.append(tank_ai)
 
@@ -143,7 +144,7 @@ def collision_bullet_tank(arb, space, data):
 
             if bullet_shape.parent in game_objects_list: # fix error
                 game_objects_list.remove(bullet_shape.parent)
-                
+
     return False
 
 def collision_bullet_box(arb, space, data):
@@ -156,7 +157,7 @@ def collision_bullet_box(arb, space, data):
         box_explosion = gameobjects.Explosion(box.x, box.y)
         game_objects_list.append(box_explosion)
         sounds.explosion_sound()
-    
+
     space.remove(bullet_shape, bullet_shape.body)
     if bullet_shape.parent in game_objects_list: # fixar error
         game_objects_list.remove(bullet_shape.parent)
@@ -170,11 +171,11 @@ def event_handler(running):
     for event in pygame.event.get():
         # Check if we receive a QUIT event (for instance, if the user press the
         # close button of the wiendow) or if the user press the escape key.
-        
+
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             running = False
             exit() #*
-        
+
         if event.type == KEYDOWN:
             if args.singleplayer or args.hot_multiplayer:
                 if event.key == K_w:
@@ -202,7 +203,7 @@ def event_handler(running):
                     tanks_list[1].turn_right()
                 if event.key == K_RETURN:
                     tanks_list[1].shoot(game_objects_list, pygame.time.get_ticks(), space)
-                
+ 
         elif event.type == KEYUP:
             if args.singleplayer or args.hot_multiplayer:
                 if event.key in (K_w, K_s):
@@ -214,8 +215,8 @@ def event_handler(running):
                         tanks_list[1].stop_moving()
                     if event.key in (K_LEFT, K_RIGHT):
                         tanks_list[1].stop_turning()
-    
-    
+
+
 #-- Update physics
 def physics_update(skip_update): #update
     if skip_update == 0:

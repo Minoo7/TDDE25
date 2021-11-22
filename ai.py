@@ -3,7 +3,7 @@ import pymunk
 from pymunk import Vec2d
 import gameobjects
 from collections import defaultdict, deque
-import copy
+#import copy
 
 # NOTE: use only 'map0' during development!
 
@@ -28,21 +28,25 @@ class Ai:
     a breadth first search. Also capable of shooting other tanks and or wooden
     boxes. """
 
-    def __init__(self, tank,  game_objects_list, tanks_list, space, currentmap):
+    def __init__(self, tank,  game_objects_list, tanks_list, space, nodeentmap):
         self.tank               = tank
         self.game_objects_list  = game_objects_list
         self.tanks_list         = tanks_list
         self.space              = space
-        self.currentmap         = currentmap
+        self.nodeentmap         = nodeentmap
         self.flag = None
-        self.MAX_X = currentmap.width - 1 
-        self.MAX_Y = currentmap.height - 1
+        self.MAX_X = nodeentmap.width - 1 
+        self.MAX_Y = nodeentmap.height - 1
 
         self.path = deque()
         self.move_cycle = self.move_cycle_gen()
         self.update_grid_pos()
 
-        
+        self.move_cycle = self.move_cycle_gen()
+
+        self.angle = 1
+        self.pos = 0
+        self.prev = 0
 
     def update_grid_pos(self):
         """ This should only be called in the beginning, or at the end of a move_cycle. """
@@ -59,31 +63,18 @@ class Ai:
             Edges are calculated as we go, using an external function.
         """
         shortest_path = []
-        #self.update_grid_pos() #to find the source of our search.
-        #tile_neighbors = self.get_tile_neighbors(pos) #(that we implemented before) to find neighbors of a specific tile.
-        init_pos = self.grid_pos
+        spawn = self.grid_pos
         queue = deque()
-        queue.appendleft(init_pos)
-        visited = set(init_pos.int_tuple)
-        #visited = set()
+        visited = set()
         path = {}
 
-        #while True:
-        secondloop = 0
+        spawn = self.grid_pos
+        queue.appendleft(spawn)
+        visited.add(spawn.int_tuple)
+        path[spawn.int_tuple] = []
+
         while len(queue) > 0:
-            #print(f"before queue popleft node: {parent}")
             node = queue.popleft()
-            #print(f"after queue popleft node: {node}")
-            if not path:
-                path[node.int_tuple] = node
-                parent = node
-                temp = []
-                temp.append(node)
-            else:
-                #path[parent.int_tuple] = []
-                #path[parent.int_tuple] = (path[node.int_tuple] + [parent])
-                temp.append(parent)
-                parent = node
             if node == self.get_target_tile(): # our target (search is done)
                 shortest_path = path[node.int_tuple]
                 break
@@ -91,45 +82,45 @@ class Ai:
                 if not neighbour.int_tuple in visited:
                     queue.appendleft(neighbour)
                     visited.add(neighbour.int_tuple)
-                    temp.append(neighbour)
-                    
-                    #print("neighbour i lista: ", [neighbour])
-                    #path[neighbour.int_tuple] = path[parent.int_tuple] + [neighbour]
-                    path[neighbour.int_tuple] = temp
-                    secondloop += 1
-                    if secondloop == 2:
-                        #node: 8,1
-                        # path parent: 8,0 8,1
-                        #path[8,2] = 8,0 8,1, 8,2
-                        print("--second loop--")
-                        print(f"node: {node}")
-                        print(f"path[parent.int_tuple]: {path[parent.int_tuple]}")
-                        print(f"path[neighbour.int_tuple]: {path[neighbour.int_tuple]}")
+                    path[neighbour.int_tuple] = path[node.int_tuple] + [neighbour] # (path to neighbour) = (path to previous pos) + (neighbour pos) .copy()?
 
-            parent = node
-
-        print("shortestpath: ", shortest_path)
+        #print("shortestpath: ", shortest_path)
         return deque(shortest_path)
 
-    def turn(self, angle):
-        self.stop_moving()
-        if angle < 0:
-            self.turn_right()
+    def turn(self):
+        self.tank.stop_moving()
+        if self.angle < -math.pi:
+            self.tank.turn_left()
+        elif 0 > self.angle > -math.pi:
+            self.tank.turn_right()
+        elif math.pi > self.angle > 0:
+            self.tank.turn_left()
         else:
-            self.turn_left()
+            self.tank.turn_right()
+        
+    def update_angle(self, next_coord):
+        self.angle = periodic_difference_of_angles(self.tank.body.angle,
+        angle_between_vectors(self.tank.body.position, next_coord + Vec2d(0.5, 0.5)))
     
     def correct_angle(self):
-        self.angle = self.periodic_difference_of_angles(self.body, self.temp)
-        if -MIN_ANGLE_DIF < self.angle and self.angle < MIN_ANGLE_DIF:
+        if abs(self.angle) < MIN_ANGLE_DIF:
+            self.tank.stop_turning()
+            self.tank.accelerate()
             return True
-        else:
-            return False
-    
+        return False
+
+    def correct_pos(self, next_coord):
+        self.pos = self.tank.body.position.get_distance(next_coord + Vec2d(0.5, 0.5))
+        if self.pos < 0.1:
+            self.update_grid_pos()
+            self.tank.stop_moving()
+            return True
+        return False
+  
     def move_cycle_gen(self):
         """ A generator that iteratively goes through all the required steps
             to move to our goal.
-        """ 
-        #print(self.find_shortest_path())
+        """
         while True:
             path = self.find_shortest_path()
             if not path:
@@ -138,38 +129,17 @@ class Ai:
                 continue # Start from top
             next_coord = path.popleft()
             yield
-            #turn
-            self.temp = self.angle_between_vectors(self.body, next_coord)
-            self.angle = self.periodic_difference_of_angles(self.body, self.temp)
-            self.turn(self.angle)
+            self.update_angle(next_coord)
+            self.turn()
             while not self.correct_angle(): #while not correct_angle()
+                self.update_angle(next_coord)
+                yield
+            while not self.correct_pos(next_coord):
                 yield
 
-            self.stop_turning()
-
-            while True: 
-                
-                middle_next = next_coord + Vec2d(0.5, 0.5) # ---------------- Kan vara fel -               
-                
-                if not last_dist:
-                    last_dist = self.tank.body.position.get_distance(middle_next)
-
-                current_dist = self.tank.body.position.get_distance(middle_next)
-                if current_dist > last_dist:
-                    self.update_grid_pos()
-                    break
-                else:
-                    self.tank.accelerate()
-                    last_dist = current_dist
-            
-
-    
     def decide(self):
         """ Main decision function that gets called on every tick of the game. """
-        move_cycle = self.move_cycle_gen()
-        #self.maybe_shoot()
-        next(move_cycle)
-        #self.move_cycle_gen()
+        next(self.move_cycle)
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
@@ -205,18 +175,18 @@ class Ai:
             or a wooden box.
         """
         neighbours = [] # Find the coordinates of the tiles' four neighbors
-        #pos = self.get_tile_of_position(coord_vec)
         neighbours.append(coord_vec + (0, 1)) # skriv om på snyggare sätt*
         neighbours.append(coord_vec + (-1, 0))
         neighbours.append(coord_vec + (0, -1))
         neighbours.append(coord_vec + (1, 0))
+
         return filter(self.filter_tile_neighbors, neighbours)
 
     def filter_tile_neighbors(self, coord):
         tile = self.get_tile_of_position(coord)
-        if 0 <= coord.x and coord.x <= self.MAX_X and \
-            0 <= coord.y and coord.y <= self.MAX_Y and \
-                self.currentmap.boxAt(tile[0], tile[1]) == 0:
+        if coord.x >= 0 and coord.x <= self.MAX_X and \
+            coord.y >= 0 and coord.y <= self.MAX_Y and \
+                self.nodeentmap.boxAt(tile[0], tile[1]) == 0:
             return True
         return False
 
