@@ -8,6 +8,8 @@ import pymunk
 #eget:
 import math
 import argparse
+#import gamemenu
+
 
 # https://gitlab.liu.se/tdde25/ctf/-/wikis/Tutorial
 
@@ -42,9 +44,6 @@ sounds.background_music()
 
 # Sets a game caption
 pygame.display.set_caption("Capture The Flag")
-
-#-- Welcome Screen
-#welcome_screen = pygame.image.load("welcome.png")
 
 #-- Constants
 FRAMERATE = 50
@@ -83,7 +82,7 @@ ai_list = []
 #-- Resize the screen to a fullscreen
 #screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN)
 screen = pygame.display.set_mode((current_map.rect().size), pygame.RESIZABLE)
-
+#gamemenu.gameintro()
 #-- Generate the background
 background = pygame.Surface(screen.get_size())
 
@@ -121,25 +120,26 @@ def create_tanks():
         tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
         game_objects_list.append(tank)
         tanks_list.append(tank)
+
+        base = gameobjects.GameVisibleObject(tanks_list[i].start_position.x, tanks_list[i].start_position.y, images.bases[i])
+        game_objects_list.append(base)
         if i == 0: #temp > **
             tank_ai = ai.Ai(tank, game_objects_list, tanks_list, space, current_map)
             ai_list.append(tank_ai)
 
 
-
-
 # Tank and bullet handler
 def collision_bullet_tank(arb, space, data):
-    
+    #tempx = tank.x
     tank = arb.shapes[0].parent
     bullet_shape = arb.shapes[1]
     if not tank.get_bullet() == bullet_shape.parent: # not shoot itself
         if not tank.respawning:
+            tank_explosion = gameobjects.Explosion(bullet_shape.parent.x, bullet_shape.parent.y)
+            game_objects_list.append(tank_explosion)
             tank.is_alive = False
             space.remove(bullet_shape, bullet_shape.body)
 
-            tank_explosion = gameobjects.Explosion(tank.x, tank.y)
-            game_objects_list.append(tank_explosion)
             sounds.explosion_sound()
 
             if bullet_shape.parent in game_objects_list: # fix error
@@ -150,7 +150,6 @@ def collision_bullet_tank(arb, space, data):
 def collision_bullet_box(arb, space, data):
     box = arb.shapes[1].parent
     bullet_shape = arb.shapes[0]
-    #print(box.get_type())
     if box.get_type():
         space.remove(box.shape, box.body)
         game_objects_list.remove(box)
@@ -189,7 +188,8 @@ def event_handler(running):
                 if event.key == K_SPACE:
                     tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
                 if event.key == K_x:
-                    print(tanks_list[0].body.angle)
+                    #print(tanks_list[0].body.angle)
+                    ai_list[0].prnt_ang()
                     #ai_list[0].find_shortest_path()
 
             if args.hot_multiplayer:
@@ -228,6 +228,8 @@ def physics_update(skip_update): #update
                 obj.try_grab_flag(flag)
                 if obj.has_won():
                     sounds.victory_sound()
+            #if type(obj) is gameobjects.Ai:
+            #    obj.maybe_shoot()
 
         skip_update = 2
     else:
@@ -261,10 +263,7 @@ create_tanks()
 
 #-- Create the flag and the bases
 flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
-base = gameobjects.GameVisibleObject(tanks_list[0].start_position.x, tanks_list[0].start_position.y, images.bases[0])
-
 game_objects_list.append(flag)
-game_objects_list.append(base)
 
 h_tank_bullet = space.add_collision_handler(1, 2)
 h_tank_bullet.pre_solve = collision_bullet_tank
@@ -278,14 +277,17 @@ h_bullet_box.pre_solve = collision_bullet_box
 running = True
 skip_update = 0
 
+screen.blit(images.welcome,(50,50))
+pygame.display.flip()
 while running:
-    
     event_handler(running)
     
     
     
-    for tank_ai in ai_list:
-        tank_ai.decide()
+    #for tank_ai in ai_list:
+        #tank_ai.decide()
+        #if tank_ai.decide():
+        #    tank_ai.tank.shoot(game_objects_list, pygame.time.get_ticks(), space)
     
             
     physics_update(skip_update)

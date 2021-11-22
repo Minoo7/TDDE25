@@ -27,7 +27,7 @@ woodbox   = load_image('woodbox.png') # Image of a wood box
 
 flag      = load_image('flag.png') # Image of flag
 
-#welcome = load_image('welcome.png') # Image of welcome screen
+welcome = load_image('welcome.png') # Image of welcome screen
 
 bullet = load_image('bullet.png')
 bullet = pygame.transform.scale(bullet, (10, 10))

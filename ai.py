@@ -42,11 +42,46 @@ class Ai:
         self.move_cycle = self.move_cycle_gen()
         self.update_grid_pos()
 
-        self.move_cycle = self.move_cycle_gen()
-
         self.angle = 1
         self.pos = 0
         self.prev = 0
+
+    def cartesian(self, pos):
+        angle = self.tank.body.angle + math.pi/2
+
+        x = math.cos(pos[0]) + angle
+        y = math.sin(pos[1]) + angle
+        #if angle < 0:
+        #    x -= 0.5
+        #else:
+        #    x += 0.5
+        #if angle < 0:
+        #    y -= 0.5
+        #else:
+        #    y += 0.5
+        #print(f"math.cos: {math.cos(pos[0])}")
+        #print(f"angle: {angle}")
+        return (x, y)
+        #x += math.pi/2
+        #y += math.pi/2
+
+
+        #print(f"angle: {x*(180/math.pi)}, {y*(180/math.pi)}")
+
+        #angle = self.tank.body.angle + math.pi/2
+    
+    def prnt_ang(self):
+        print(f"angle: {self.tank.body.angle}")
+        print(f"cartesian start: {self.cartesian(self.tank.body.position + (0.5, 0.5))}")
+        print(f"cartesian end : {(self.nodeentmap.width, self.nodeentmap.height)}")
+        res = self.ray_cast()
+        print(f"res: {res}")
+    
+    def ray_cast(self):
+        
+        self.space.segment_query_first(self.cartesian(self.tank.body.position + (0.5, 0.5)),
+        self.cartesian((self.nodeentmap.width, self.nodeentmap.height)),
+        0, pymunk.ShapeFilter())
 
     def update_grid_pos(self):
         """ This should only be called in the beginning, or at the end of a move_cycle. """
@@ -56,7 +91,13 @@ class Ai:
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot. 
         """
-        pass # To be implemented
+        #print(f"start: {self.cartesian(self.tank.body.position + (0.5, 0.5))}")
+        #end = (self.nodeentmap.width, self.nodeentmap.height)
+        #print(f"end: {self.cartesian(end)}")
+        res = self.ray_cast()
+        #print(f"res: {res}")
+        return True
+        #pass
         
     def find_shortest_path(self):
         """ A simple Breadth First Search using integer coordinates as our nodes.
@@ -68,23 +109,24 @@ class Ai:
         visited = set()
         path = {}
 
-        spawn = self.grid_pos
         queue.appendleft(spawn)
         visited.add(spawn.int_tuple)
         path[spawn.int_tuple] = []
 
-        while len(queue) > 0:
+        #while len(queue) > 0:
+        while queue:
             node = queue.popleft()
             if node == self.get_target_tile(): # our target (search is done)
                 shortest_path = path[node.int_tuple]
                 break
             for neighbour in self.get_tile_neighbors(node):
                 if not neighbour.int_tuple in visited:
-                    queue.appendleft(neighbour)
-                    visited.add(neighbour.int_tuple)
+                    queue.append(neighbour)
                     path[neighbour.int_tuple] = path[node.int_tuple] + [neighbour] # (path to neighbour) = (path to previous pos) + (neighbour pos) .copy()?
 
-        #print("shortestpath: ", shortest_path)
+            visited.add(node.int_tuple)
+
+        #print("\n shortestpath: ", shortest_path)
         return deque(shortest_path)
 
     def turn(self):
@@ -110,12 +152,17 @@ class Ai:
         return False
 
     def correct_pos(self, next_coord):
-        self.pos = self.tank.body.position.get_distance(next_coord + Vec2d(0.5, 0.5))
-        if self.pos < 0.1:
+        self.update_pos(next_coord)
+        if self.pos > self.prev:
             self.update_grid_pos()
             self.tank.stop_moving()
+            self.prev = self.pos + 1
             return True
+        self.prev = self.pos
         return False
+    
+    def update_pos(self, next_coord):
+        self.pos = self.tank.body.position.get_distance(next_coord + Vec2d(0.5, 0.5))
   
     def move_cycle_gen(self):
         """ A generator that iteratively goes through all the required steps
@@ -134,12 +181,17 @@ class Ai:
             while not self.correct_angle(): #while not correct_angle()
                 self.update_angle(next_coord)
                 yield
+            self.update_pos(next_coord)
+            self.prev = self.pos
             while not self.correct_pos(next_coord):
                 yield
 
     def decide(self):
         """ Main decision function that gets called on every tick of the game. """
         next(self.move_cycle)
+        if self.maybe_shoot():
+            return True
+        return False
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
