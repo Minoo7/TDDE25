@@ -1,6 +1,9 @@
 import math
 import pymunk
 from pymunk import Vec2d
+from pymunk import space
+from pymunk.query_info import SegmentQueryInfo
+from pymunk.shapes import Shape
 import gameobjects
 from collections import defaultdict, deque
 #import copy
@@ -46,48 +49,39 @@ class Ai:
         self.pos = 0
         self.prev = 0
 
-    def cartesian(self, pos):
-        angle = self.tank.body.angle + math.pi/2
-
-        x = math.cos(pos[0]) + angle
-        y = math.sin(pos[1]) + angle
-        #if angle < 0:
-        #    x -= 0.5
-        #else:
-        #    x += 0.5
-        #if angle < 0:
-        #    y -= 0.5
-        #else:
-        #    y += 0.5
-        #print(f"math.cos: {math.cos(pos[0])}")
-        #print(f"angle: {angle}")
-        return (x, y)
-        #x += math.pi/2
-        #y += math.pi/2
-
-
-        #print(f"angle: {x*(180/math.pi)}, {y*(180/math.pi)}")
-
-        #angle = self.tank.body.angle + math.pi/2
-    
-    def prnt_ang(self):
-        print(f"angle: {self.tank.body.angle}")
-        print(f"cartesian start: {self.cartesian(self.tank.body.position + (0.5, 0.5))}")
-        print(f"cartesian end : {(self.nodeentmap.width, self.nodeentmap.height)}")
-        res = self.ray_cast()
-        print(f"res: {res}")
+        self.metal = False
     
     def ray_cast(self):
-        
-        self.space.segment_query_first(self.cartesian(self.tank.body.position + (0.5, 0.5)),
-        self.cartesian((self.nodeentmap.width, self.nodeentmap.height)),
-        0, pymunk.ShapeFilter())
+
+        tank_pos = self.tank.body.position
+        map = self.nodeentmap
+        angle = self.tank.body.angle + math.pi/2
+
+        #Ray start
+        x_start = 0.5 * math.cos(angle)
+        y_start = 0.5 * math.sin(angle)
+
+        ray_x_start = tank_pos[0] + x_start
+        ray_y_start = tank_pos[1] + y_start
+
+        ray_start = (ray_x_start, ray_y_start)
+
+        #Ray end
+        x_end = map.width * math.cos(angle)
+        y_end = map.height * math.sin(angle)
+
+        ray_x_end = tank_pos[0] + x_end
+        ray_y_end = tank_pos[1] + y_end
+
+        ray_end = (ray_x_end, ray_y_end)
+
+        return self.space.segment_query_first(ray_start, ray_end, 0, pymunk.ShapeFilter())
 
     def update_grid_pos(self):
         """ This should only be called in the beginning, or at the end of a move_cycle. """
         self.grid_pos = self.get_tile_of_position(self.tank.body.position)
 
-    def maybe_shoot(self):
+    def maybe_shoot(self, lst, time, space):
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot. 
         """
@@ -95,11 +89,14 @@ class Ai:
         #end = (self.nodeentmap.width, self.nodeentmap.height)
         #print(f"end: {self.cartesian(end)}")
         res = self.ray_cast()
-        #print(f"res: {res}")
-        return True
-        #pass
+    
+        if hasattr(res, "shape"):
+            col_type = res.shape.collision_type
+            if col_type == 1 or \
+            (col_type == 3 and res.shape.parent.destructable):
+                self.tank.shoot(lst, time, space)
         
-    def find_shortest_path(self):
+    def find_shortest_path(self, metal = None):
         """ A simple Breadth First Search using integer coordinates as our nodes.
             Edges are calculated as we go, using an external function.
         """
@@ -112,22 +109,25 @@ class Ai:
         queue.appendleft(spawn)
         visited.add(spawn.int_tuple)
         path[spawn.int_tuple] = []
-
         #while len(queue) > 0:
         while queue:
             node = queue.popleft()
             if node == self.get_target_tile(): # our target (search is done)
                 shortest_path = path[node.int_tuple]
                 break
-            for neighbour in self.get_tile_neighbors(node):
+            for neighbour in self.get_tile_neighbors(node, self.metal):
                 if not neighbour.int_tuple in visited:
                     queue.append(neighbour)
                     path[neighbour.int_tuple] = path[node.int_tuple] + [neighbour] # (path to neighbour) = (path to previous pos) + (neighbour pos) .copy()?
 
             visited.add(node.int_tuple)
+        if not shortest_path:
+            self.metal = True
+        else:
+            self.metal = False
+            return deque(shortest_path)
 
         #print("\n shortestpath: ", shortest_path)
-        return deque(shortest_path)
 
     def turn(self):
         self.tank.stop_moving()
@@ -140,9 +140,10 @@ class Ai:
         else:
             self.tank.turn_right()
         
-    def update_angle(self, next_coord):
+    def update_angle(self, coord):
         self.angle = periodic_difference_of_angles(self.tank.body.angle,
-        angle_between_vectors(self.tank.body.position, next_coord + Vec2d(0.5, 0.5)))
+        angle_between_vectors(self.tank.body.position, coord + Vec2d(0.5, 0.5)))
+
     
     def correct_angle(self):
         if abs(self.angle) < MIN_ANGLE_DIF:
@@ -176,9 +177,25 @@ class Ai:
                 continue # Start from top
             next_coord = path.popleft()
             yield
+            #if self.get_tile_of_position(self.tank.body.position) == self.get_target_tile():
+            #    print("yes")
+            #    self.update_angle(None, Vec2d(self.flag.x, self.flag.y), True)
+            #else:
+            #    #self.update_angle(next_coord)
+            #    self.update_angle(next_coord + Vec2d(0.5, 0.5), None, False)
             self.update_angle(next_coord)
             self.turn()
             while not self.correct_angle(): #while not correct_angle()
+
+                #print("body pos: ", self.get_tile_of_position(self.tank.body.position))
+                #print("flag", self.get_tile_of_position((self.flag.x, self.flag.y)))
+                #print("target tile: ", self.get_target_tile())
+                #if self.get_tile_of_position(self.tank.body.position) == self.get_target_tile():
+                #    print("yes")
+                #    self.update_angle(None, Vec2d(self.flag.x, self.flag.y), True)
+                #else:
+                #    #self.update_angle(next_coord)
+                #    self.update_angle(next_coord + Vec2d(0.5, 0.5), None, False )
                 self.update_angle(next_coord)
                 yield
             self.update_pos(next_coord)
@@ -186,12 +203,10 @@ class Ai:
             while not self.correct_pos(next_coord):
                 yield
 
-    def decide(self):
+    def decide(self, lst, time, space):
         """ Main decision function that gets called on every tick of the game. """
+        self.maybe_shoot(lst, time, space)
         next(self.move_cycle)
-        if self.maybe_shoot():
-            return True
-        return False
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
@@ -220,8 +235,9 @@ class Ai:
         """ Converts and returns the float position of our tank to an integer position. """
         x, y = position_vector
         return Vec2d(int(x), int(y))
+    
 
-    def get_tile_neighbors(self, coord_vec):
+    def get_tile_neighbors(self, coord_vec, metal = None):
         """ Returns all bordering grid squares of the input coordinate.
             A bordering square is only considered accessible if it is grass
             or a wooden box.
@@ -232,14 +248,26 @@ class Ai:
         neighbours.append(coord_vec + (0, -1))
         neighbours.append(coord_vec + (1, 0))
 
-        return filter(self.filter_tile_neighbors, neighbours)
-
-    def filter_tile_neighbors(self, coord):
+        #lst = [item for item in neighbours if self.filter_neighbours(item, metal)]
+        #return lst
+        if not metal:
+            return filter(self.filter_tile_neighbours, neighbours)
+        return filter(self.filter_tile_neighbours_metal, neighbours)
+    
+    def filter_tile_neighbours(self, coord, metal = None):
         tile = self.get_tile_of_position(coord)
+        box_type = self.nodeentmap.boxAt
+        
         if coord.x >= 0 and coord.x <= self.MAX_X and \
-            coord.y >= 0 and coord.y <= self.MAX_Y and \
-                self.nodeentmap.boxAt(tile[0], tile[1]) == 0:
-            return True
+            coord.y >= 0 and coord.y <= self.MAX_Y:
+            if metal:
+               if box_type(tile[0], tile[1]) != 1:
+                   return True
+            if (box_type(tile[0], tile[1]) == 0 or box_type(tile[0], tile[1]) == 2):
+                return True
         return False
+
+    def filter_tile_neighbours_metal(self, coord):
+        return self.filter_tile_neighbours(coord, metal = True)
 
 SimpleAi = Ai # Legacy

@@ -1,20 +1,38 @@
 import pygame
+from pygame.constants import FULLSCREEN
 import pymunk
 
+#Intiliaze game
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 pygame.display.set_caption('Main Menu')
 clock = pygame.time.Clock()
-width = maps.map0.width
-def singleplayer():
-    print("hej") # ändra
-def multiplayer():
-    print("då") # ändra
+
+#-- Fonts
+font = pygame.font.SysFont('Times New Roman', 30)
+smallerfont = pygame.font.SysFont('Times New Roman', 20)
+
+#-- Colors
+slategrey = (112, 128, 144)
+lightgrey = (165, 175, 185)
+lighterblack = (10, 10, 10)
+white = (255, 255, 255)
+black = (0, 0, 0)
+neongreen = (57, 255, 20)
+navajowhite = (255, 222, 173)
+
+#-- Start a screen
+width = height = 720
+screen = pygame.display.set_mode((width, height))
+
+#-- Button creater
 def create_button(x, y, width, height, hovercolor, defaultcolor):
+    """Creates a button with ability to hover and press"""
+    # Gets mouse x and y pos
     mouse = pygame.mouse.get_pos()
-    # Mouse get pressed can run without an integer, but needs a 3 or 5 to indicate how many buttons
+    # Checks if a mouse gets pressed
     click = pygame.mouse.get_pressed(3)
+    # Draws a button and checks if we interact with the button
     if x + width > mouse[0] > x and y + height > mouse[1] > y:
         pygame.draw.rect(screen, hovercolor, (x, y, width, height))
         if click[0] == 1:
@@ -22,35 +40,25 @@ def create_button(x, y, width, height, hovercolor, defaultcolor):
     else:
         pygame.draw.rect(screen, defaultcolor, (x, y, width, height))
 
-screen = pygame.display.set_mode((500, 500)) 
+def mappicker():
+    screen.fill(navajowhite)
 
-font = pygame.font.SysFont('Times New Roman', 30)
-slategrey = (112, 128, 144)
-lightgrey = (165, 175, 185)
-lighterblack = (10, 10, 10)
-white = (255, 255, 255)
-black = (0, 0, 0)
-neongreen = (57, 255, 20)
+    mappick = font.render('Choose a map', False, black)
+    play = smallerfont.render('Play!', False, black)
+    quitgame = smallerfont.render('Quit!', False, black)
 
+    center = width / 2
 
+    while True:
+        start_button = create_button(30, 250, 125, 26, slategrey, white)
+        quit_button = create_button(30, 300, 125, 26, slategrey, white)
 
-#welcome = pygame.image.load(images.welcome)
-
-def gameintro():
-    screen.fill(neongreen)
-    ctf = font.render('Capture The Flag', False, black)
-    screen.blit(ctf, (100,100))
-    running = True
-    print("lol")
-    while running:
-        singleplayer_button = create_button(30, 250, 125, 26, black, white)
-        multiplayer_button = create_button(30, 300, 125, 26, black, white)
-        quit_button = create_button(30, 350, 125, 26, black, white)
-
-        if singleplayer_button:
-            singleplayer()
-        if multiplayer_button:
-            multiplayer()
+        screen.blit(mappick, (center - (mappick.get_rect().width / 2), 100))
+        screen.blit(play, (75, 250))
+        screen.blit(quitgame, (75, 300))
+        
+        if start_button:
+            pass
         if quit_button:
             pygame.quit()
             quit()
@@ -61,11 +69,76 @@ def gameintro():
         pygame.display.update()
 
 
-        clock.tick(15)
+        clock.tick(10)
 
-while True:
-    gameintro()
-    pygame.display.update()
+def hotornot():
+    screen.fill(navajowhite)
 
-    clock.tick(15)
+    playerpicker = font.render('Choose a gamemode', False, black)
+    multiplayertext = smallerfont.render('Multiplayer', False, black)
+    singleplayertext = smallerfont.render('Singleplayer', False, black)
+    quitgame = smallerfont.render('Quit!', False, black)
+
+    center = width / 2
+
+    while True:
+        singleplayer_button = create_button(30, 250, 125, 27, slategrey, white)
+        multiplayer_button = create_button(30, 300, 125, 27, slategrey, white)
+        quit_button = create_button(30, 350, 125, 27, slategrey, white)
+
+        screen.blit(playerpicker, (center - (playerpicker.get_rect().width / 2), 100))
+        screen.blit(singleplayertext, (35, 250))
+        screen.blit(multiplayertext, (37, 300))
+        screen.blit(quitgame, (75, 350))
+
+        if singleplayer_button:
+            mappicker()
+        if multiplayer_button:
+            mappicker()
+        if quit_button:
+            pygame.quit()
+            quit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                pygame.quit()
+                quit()
+        pygame.display.update()
+
+        clock.tick(10)
+
+
+
+def gameintro():
+    screen.fill(navajowhite)
+
+    ctf = font.render('Capture The Flag', False, black)
+    play = smallerfont.render('Play!', False, black)
+    quitgame = smallerfont.render('Quit!', False, black)
+
+    center = width / 2
+
+    while True:
+        start_button = create_button(30, 250, 125, 26, slategrey, white)
+        quit_button = create_button(30, 300, 125, 26, slategrey, white)
+
+        screen.blit(ctf, (center - (ctf.get_rect().width / 2), 100))
+        screen.blit(play, (75, 250))
+        screen.blit(quitgame, (75, 300))
+        
+        if start_button:
+            hotornot()
+        if quit_button:
+            pygame.quit()
+            quit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                pygame.quit()
+                quit()
+        pygame.display.update()
+
+
+        clock.tick(10)
+
+
+gameintro()
 

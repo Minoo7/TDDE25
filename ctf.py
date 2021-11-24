@@ -50,7 +50,7 @@ FRAMERATE = 50
 
 #-- Variables
 #   Define the current level
-current_map         = maps.map0
+current_map         = maps.map1
 
 # Define flags from commandline deciding between multiplayer and singleplayer
 
@@ -69,6 +69,7 @@ static_lines = [
     pymunk.Segment(space.static_body, (0, height), (width, height), 0.0),
     pymunk.Segment(space.static_body, (width, 0), (width, height), 0.0),
 ]
+
 for line in static_lines:
     line.elasticity = 0.95
     line.friction = 0.9
@@ -96,7 +97,6 @@ def grass_background():
             # image at the coordinates given as the second argument
             background.blit(images.grass,  (x*images.TILE_SIZE, y*images.TILE_SIZE))
 
-
 def create_boxes():
     #-- Create the boxes
     for x in range(0, current_map.width):
@@ -123,10 +123,9 @@ def create_tanks():
 
         base = gameobjects.GameVisibleObject(tanks_list[i].start_position.x, tanks_list[i].start_position.y, images.bases[i])
         game_objects_list.append(base)
-        if i == 0: #temp > **
+        if i > 0: #temp > **
             tank_ai = ai.Ai(tank, game_objects_list, tanks_list, space, current_map)
             ai_list.append(tank_ai)
-
 
 # Tank and bullet handler
 def collision_bullet_tank(arb, space, data):
@@ -164,7 +163,6 @@ def collision_bullet_box(arb, space, data):
 
     return False
 
-
 #Handle the events
 def event_handler(running):
     for event in pygame.event.get():
@@ -189,7 +187,7 @@ def event_handler(running):
                     tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
                 if event.key == K_x:
                     #print(tanks_list[0].body.angle)
-                    ai_list[0].prnt_ang()
+                    ai_list[0].maybe_shoot()
                     #ai_list[0].find_shortest_path()
 
             if args.hot_multiplayer:
@@ -216,7 +214,6 @@ def event_handler(running):
                     if event.key in (K_LEFT, K_RIGHT):
                         tanks_list[1].stop_turning()
 
-
 #-- Update physics
 def physics_update(skip_update): #update
     if skip_update == 0:
@@ -235,7 +232,6 @@ def physics_update(skip_update): #update
     else:
         skip_update -= 1
 
-
 def object_update():
     #   Check collisions and update the objects position
     space.step(1 / FRAMERATE)
@@ -245,7 +241,6 @@ def object_update():
         if type(obj) is gameobjects.Explosion:
             if not obj.active:
                 game_objects_list.remove(obj)
-
 
 def display_update():
     #-- Update Display
@@ -265,9 +260,10 @@ create_tanks()
 flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
 game_objects_list.append(flag)
 
+#-- Collision Handlers
+
 h_tank_bullet = space.add_collision_handler(1, 2)
 h_tank_bullet.pre_solve = collision_bullet_tank
-
 h_bullet_box = space.add_collision_handler(2, 3)
 h_bullet_box.pre_solve = collision_bullet_box
 
@@ -281,21 +277,13 @@ screen.blit(images.welcome,(50,50))
 pygame.display.flip()
 while running:
     event_handler(running)
-    
-    
-    
-    #for tank_ai in ai_list:
-        #tank_ai.decide()
-        #if tank_ai.decide():
-        #    tank_ai.tank.shoot(game_objects_list, pygame.time.get_ticks(), space)
-    
+
+    for tank_ai in ai_list:
+        tank_ai.decide(game_objects_list, pygame.time.get_ticks(), space)
             
     physics_update(skip_update)
     object_update()
     display_update()
-
-
-
 
     #   Control the game framerate
     clock.tick(FRAMERATE)
