@@ -14,6 +14,7 @@ import argparse
 # https://gitlab.liu.se/tdde25/ctf/-/wikis/Tutorial
 
 #----- Initialisation -----#
+#gamemenu.gameintro()
 
 #-- Initialise the display
 pygame.init()
@@ -50,7 +51,7 @@ FRAMERATE = 50
 
 #-- Variables
 #   Define the current level
-current_map         = maps.map1
+current_map         = maps.map2
 
 # Define flags from commandline deciding between multiplayer and singleplayer
 
@@ -74,6 +75,7 @@ for line in static_lines:
     line.elasticity = 0.95
     line.friction = 0.9
 space.add(*static_lines)
+
 #   List of all game objects
 global game_objects_list
 game_objects_list   = []
@@ -116,7 +118,8 @@ def create_tanks():
     for i in range(0, len(current_map.start_positions)):
         # Get the starting position of the tank "i"
         pos = current_map.start_positions[i]
-        # Create the tank, images.tanks contains the image representing the tank
+        
+        # Create the tanks and bases
         tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
         game_objects_list.append(tank)
         tanks_list.append(tank)
@@ -125,6 +128,8 @@ def create_tanks():
         game_objects_list.append(base)
         if i > 0: #temp > **
             tank_ai = ai.Ai(tank, game_objects_list, tanks_list, space, current_map)
+            tank_ai.tank.bullet_speed *= 1.2
+            tank_ai.tank.NORMAL_MAX_SPEED *= 1.3
             ai_list.append(tank_ai)
 
 # Tank and bullet handler
@@ -167,7 +172,7 @@ def collision_bullet_box(arb, space, data):
 def event_handler(running):
     for event in pygame.event.get():
         # Check if we receive a QUIT event (for instance, if the user press the
-        # close button of the wiendow) or if the user press the escape key.
+        # close button of the window) or if the user press the escape key.
 
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             running = False
@@ -185,10 +190,9 @@ def event_handler(running):
                     tanks_list[0].turn_right()
                 if event.key == K_SPACE:
                     tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
-                if event.key == K_x:
-                    #print(tanks_list[0].body.angle)
-                    ai_list[0].maybe_shoot()
-                    #ai_list[0].find_shortest_path()
+                if event.key == K_x: # Test key
+                    pass
+
 
             if args.hot_multiplayer:
                 if event.key == K_UP:
@@ -225,8 +229,6 @@ def physics_update(skip_update): #update
                 obj.try_grab_flag(flag)
                 if obj.has_won():
                     sounds.victory_sound()
-            #if type(obj) is gameobjects.Ai:
-            #    obj.maybe_shoot()
 
         skip_update = 2
     else:
@@ -249,7 +251,7 @@ def display_update():
     # Update the display of the game objects on the screen
     for obj in game_objects_list:
         obj.update_screen(screen)
-    #   Redisplay the entire screen (see double buffer technique)
+    # Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
 grass_background()

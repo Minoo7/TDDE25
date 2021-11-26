@@ -9,8 +9,9 @@ pygame.display.set_caption('Main Menu')
 clock = pygame.time.Clock()
 
 #-- Fonts
-font = pygame.font.SysFont('Times New Roman', 30)
-smallerfont = pygame.font.SysFont('Times New Roman', 20)
+font = pygame.font.SysFont('Tahoma', 30, bold=True)
+smallerfont = pygame.font.SysFont('Tahoma', 20)
+#font.Font.bold = 
 
 #-- Colors
 slategrey = (112, 128, 144)
@@ -46,6 +47,8 @@ def mappicker():
     mappick = font.render('Choose a map', False, black)
     play = smallerfont.render('Play!', False, black)
     quitgame = smallerfont.render('Quit!', False, black)
+    tiltedtower = smallerfont.render('Tilted Towers', False, black)
+    retailrow = smallerfont.render
 
     center = width / 2
 
@@ -71,10 +74,10 @@ def mappicker():
 
         clock.tick(10)
 
-def hotornot():
+def gameintro():
     screen.fill(navajowhite)
 
-    playerpicker = font.render('Choose a gamemode', False, black)
+    playerpicker = font.render('Capture The Flag', False, black)
     multiplayertext = smallerfont.render('Multiplayer', False, black)
     singleplayertext = smallerfont.render('Singleplayer', False, black)
     quitgame = smallerfont.render('Quit!', False, black)
@@ -105,40 +108,6 @@ def hotornot():
         pygame.display.update()
 
         clock.tick(10)
-
-
-
-def gameintro():
-    screen.fill(navajowhite)
-
-    ctf = font.render('Capture The Flag', False, black)
-    play = smallerfont.render('Play!', False, black)
-    quitgame = smallerfont.render('Quit!', False, black)
-
-    center = width / 2
-
-    while True:
-        start_button = create_button(30, 250, 125, 26, slategrey, white)
-        quit_button = create_button(30, 300, 125, 26, slategrey, white)
-
-        screen.blit(ctf, (center - (ctf.get_rect().width / 2), 100))
-        screen.blit(play, (75, 250))
-        screen.blit(quitgame, (75, 300))
-        
-        if start_button:
-            hotornot()
-        if quit_button:
-            pygame.quit()
-            quit()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                pygame.quit()
-                quit()
-        pygame.display.update()
-
-
-        clock.tick(10)
-
 
 gameintro()
 

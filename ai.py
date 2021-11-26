@@ -85,9 +85,7 @@ class Ai:
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot. 
         """
-        #print(f"start: {self.cartesian(self.tank.body.position + (0.5, 0.5))}")
-        #end = (self.nodeentmap.width, self.nodeentmap.height)
-        #print(f"end: {self.cartesian(end)}")
+
         res = self.ray_cast()
     
         if hasattr(res, "shape"):
@@ -109,7 +107,7 @@ class Ai:
         queue.appendleft(spawn)
         visited.add(spawn.int_tuple)
         path[spawn.int_tuple] = []
-        #while len(queue) > 0:
+
         while queue:
             node = queue.popleft()
             if node == self.get_target_tile(): # our target (search is done)
@@ -127,7 +125,6 @@ class Ai:
             self.metal = False
             return deque(shortest_path)
 
-        #print("\n shortestpath: ", shortest_path)
 
     def turn(self):
         self.tank.stop_moving()
@@ -156,7 +153,7 @@ class Ai:
         self.update_pos(next_coord)
         if self.pos > self.prev:
             self.update_grid_pos()
-            self.tank.stop_moving()
+            #self.tank.stop_moving()
             self.prev = self.pos + 1
             return True
         self.prev = self.pos
@@ -172,30 +169,16 @@ class Ai:
         while True:
             path = self.find_shortest_path()
             if not path:
-                #break # Start from the top of our cycle
+                # Start from the top of our cycle
                 yield
                 continue # Start from top
             next_coord = path.popleft()
             yield
-            #if self.get_tile_of_position(self.tank.body.position) == self.get_target_tile():
-            #    print("yes")
-            #    self.update_angle(None, Vec2d(self.flag.x, self.flag.y), True)
-            #else:
-            #    #self.update_angle(next_coord)
-            #    self.update_angle(next_coord + Vec2d(0.5, 0.5), None, False)
+
             self.update_angle(next_coord)
             self.turn()
-            while not self.correct_angle(): #while not correct_angle()
 
-                #print("body pos: ", self.get_tile_of_position(self.tank.body.position))
-                #print("flag", self.get_tile_of_position((self.flag.x, self.flag.y)))
-                #print("target tile: ", self.get_target_tile())
-                #if self.get_tile_of_position(self.tank.body.position) == self.get_target_tile():
-                #    print("yes")
-                #    self.update_angle(None, Vec2d(self.flag.x, self.flag.y), True)
-                #else:
-                #    #self.update_angle(next_coord)
-                #    self.update_angle(next_coord + Vec2d(0.5, 0.5), None, False )
+            while not self.correct_angle(): #while not correct_angle()
                 self.update_angle(next_coord)
                 yield
             self.update_pos(next_coord)
@@ -248,8 +231,6 @@ class Ai:
         neighbours.append(coord_vec + (0, -1))
         neighbours.append(coord_vec + (1, 0))
 
-        #lst = [item for item in neighbours if self.filter_neighbours(item, metal)]
-        #return lst
         if not metal:
             return filter(self.filter_tile_neighbours, neighbours)
         return filter(self.filter_tile_neighbours_metal, neighbours)

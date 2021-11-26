@@ -133,8 +133,6 @@ class Tank(GamePhysicsObject):
     # Constant values for the tank, acessed like: Tank.ACCELERATION
     # You can add more constants here if needed later
     ACCELERATION = 0.4
-    NORMAL_MAX_SPEED = 2.0
-    FLAG_MAX_SPEED = NORMAL_MAX_SPEED * 0.5
 
     def __init__(self, x, y, orientation, sprite, space):
         super().__init__(x, y, orientation, sprite, space, True)
@@ -142,10 +140,13 @@ class Tank(GamePhysicsObject):
         self.acceleration = 0 # 1 forward, 0 for stand still, -1 for backwards
         self.rotation = 0 # 1 clockwise, 0 for no rotation, -1 counter clockwise
 
+        self.NORMAL_MAX_SPEED = 2.0
+        self.FLAG_MAX_SPEED = self.NORMAL_MAX_SPEED * 0.5
+
         self.x = x
         self.y = y
         self.flag                 = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
-        self.max_speed        = Tank.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
+        self.max_speed        = self.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
         self.start_position       = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
         self.shape.collision_type = 1                       # Define the collision type of the tank as 1
         #eget:
@@ -154,6 +155,8 @@ class Tank(GamePhysicsObject):
         self.timer = 0
 
         self.wins = 0
+
+        self.bullet_speed = 2.0
 
         self.respawning = False
         self.blink_count = 0
@@ -225,7 +228,7 @@ class Tank(GamePhysicsObject):
             self.flag.orientation = -math.degrees(self.body.angle)
         # Else ensure that the tank has its normal max speed
         else:
-            self.max_speed = Tank.NORMAL_MAX_SPEED
+            self.max_speed = self.NORMAL_MAX_SPEED
 
         if self.respawning:
             if 500 < (time - self.resp_time):
@@ -252,11 +255,11 @@ class Tank(GamePhysicsObject):
         if(not flag.is_on_tank):
             # Check if the tank is close to the flag
             flag_pos = pymunk.Vec2d(flag.x, flag.y)
-            if((flag_pos - self.body.position).length < 0.5):
+            if((flag_pos - self.body.position).length < 0.6):
                 # Grab the flag !
                 self.flag           = flag
                 flag.is_on_tank     = True
-                self.max_speed  = Tank.FLAG_MAX_SPEED
+                self.max_speed  = self.FLAG_MAX_SPEED
                 sounds.flag_sound()
 
     def has_won(self):
@@ -269,7 +272,7 @@ class Tank(GamePhysicsObject):
         if 1000 < (time - self.timer):
             self.timer = time
             #self.shooting = False
-            bullet = Bullet(self.body.position[0], self.body.position[1], math.degrees(self.body.angle), images.bullet, space)
+            bullet = Bullet(self.body.position[0], self.body.position[1], math.degrees(self.body.angle), images.bullet, space, self.bullet_speed)
             bullet.is_shot          = True
             self.bullet             = bullet
             self.bullet.x           = self.body.position[0]
@@ -353,15 +356,16 @@ class Explosion(GameVisibleObject):
 class Bullet(GamePhysicsObject):
     """ This class is for bullets shot from a Tank."""
 
-    ACCELERATION = 0.4
-    NORMAL_MAX_SPEED = 2.0
-
-    def __init__(self, x, y, orientation, sprite, space):
+    def __init__(self, x, y, orientation, sprite, space, speed):
         super().__init__(x, y, orientation, sprite, space, True)
         # Define variable used to apply motion to the tanks
         self.acceleration = 10
         self.velocity = 10
         self.rotation = 0
+
+        self.ACCELERATION = 0.4
+        #self.NORMAL_MAX_SPEED = 10.0
+        self.NORMAL_MAX_SPEED = speed
 
         self.active = False  
         self.max_speed        = 10.0
