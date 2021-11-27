@@ -150,12 +150,13 @@ class Tank(GamePhysicsObject):
         self.start_position       = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
         self.shape.collision_type = 1                       # Define the collision type of the tank as 1
         #eget:
+        self.player_number = None
         self.bullet = None
         self.shooting = False
         self.timer = 0
-
+        self.hitpoints = 2
         self.wins = 0
-
+        self.score = 0
         self.bullet_speed = 2.0
 
         self.respawning = False
@@ -295,6 +296,7 @@ class Box(GamePhysicsObject):
         self.shape.collision_type = 3              #Define the collision type of the boxes as 3
         self.x = x
         self.y = y
+        self.hitpoints = 2
 
     def get_type(self):
         return self.destructable
@@ -362,7 +364,6 @@ class Bullet(GamePhysicsObject):
         self.acceleration = 10
         self.velocity = 10
         self.rotation = 0
-
         self.ACCELERATION = 0.4
         #self.NORMAL_MAX_SPEED = 10.0
         self.NORMAL_MAX_SPEED = speed

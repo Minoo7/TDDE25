@@ -81,6 +81,7 @@ global game_objects_list
 game_objects_list   = []
 tanks_list          = []
 ai_list = []
+score_dict = {}
 
 #-- Resize the screen to a fullscreen
 #screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN)
@@ -124,6 +125,9 @@ def create_tanks():
         game_objects_list.append(tank)
         tanks_list.append(tank)
 
+        tank.player_number = i + 1
+        score_dict[tank.player_number] = tank.score
+
         base = gameobjects.GameVisibleObject(tanks_list[i].start_position.x, tanks_list[i].start_position.y, images.bases[i])
         game_objects_list.append(base)
         if i > 0: #temp > **
@@ -139,12 +143,15 @@ def collision_bullet_tank(arb, space, data):
     bullet_shape = arb.shapes[1]
     if not tank.get_bullet() == bullet_shape.parent: # not shoot itself
         if not tank.respawning:
-            tank_explosion = gameobjects.Explosion(bullet_shape.parent.x, bullet_shape.parent.y)
-            game_objects_list.append(tank_explosion)
-            tank.is_alive = False
-            space.remove(bullet_shape, bullet_shape.body)
+            if tank.hitpoints > 1:
+                tank.hitpoints -= 1
+            else:
+                tank_explosion = gameobjects.Explosion(tank.body.position[0], tank.body.position[1])
+                game_objects_list.append(tank_explosion)
+                sounds.explosion_sound()
+                tank.is_alive = False
 
-            sounds.explosion_sound()
+            space.remove(bullet_shape, bullet_shape.body)
 
             if bullet_shape.parent in game_objects_list: # fix error
                 game_objects_list.remove(bullet_shape.parent)
@@ -155,16 +162,18 @@ def collision_bullet_box(arb, space, data):
     box = arb.shapes[1].parent
     bullet_shape = arb.shapes[0]
     if box.get_type():
-        space.remove(box.shape, box.body)
-        game_objects_list.remove(box)
-        box_explosion = gameobjects.Explosion(box.x, box.y)
-        game_objects_list.append(box_explosion)
-        sounds.explosion_sound()
+        if box.hitpoints > 1:
+            box.hitpoints -= 1
+        else:
+            space.remove(box.shape, box.body)
+            game_objects_list.remove(box)
+            box_explosion = gameobjects.Explosion(box.x, box.y)
+            game_objects_list.append(box_explosion)
+            sounds.explosion_sound()
 
     space.remove(bullet_shape, bullet_shape.body)
     if bullet_shape.parent in game_objects_list: # fixar error
         game_objects_list.remove(bullet_shape.parent)
-        sounds.explosion_sound()
 
     return False
 
@@ -228,7 +237,12 @@ def physics_update(skip_update): #update
             if type(obj) is gameobjects.Tank:
                 obj.try_grab_flag(flag)
                 if obj.has_won():
+                    obj.score += 1
+                    score_dict[obj.player_number] = obj.score
                     sounds.victory_sound()
+                    for key, value in score_dict.items():
+                        print("Player", key, ' : ', value)
+
 
         skip_update = 2
     else:
