@@ -39,6 +39,7 @@ import sounds
 import images
 import gameobjects
 import maps
+import copy
 
 # Loading and playing background music:
 sounds.background_music()
@@ -113,6 +114,35 @@ def create_boxes():
                 box = gameobjects.get_box_with_type(x, y, box_type, space)
                 game_objects_list.append(box)
 
+def reset_game(): # Under construction
+    sounds.victory_sound()
+    for obj in game_objects_list[:]:
+        if type(obj) is gameobjects.Tank:
+            obj.body.position = obj.start_position
+            obj.stop_moving()
+            if obj.flag != None:
+                obj.flag_pos = pymunk.Vec2d(current_map.flag_position[0], current_map.flag_position[1])
+                obj.flag.is_on_tank = False
+            obj.flag = None
+
+        if type(obj) is gameobjects.Flag:
+            obj.is_on_tank = False
+            obj.x = current_map.flag_position[0]
+            obj.y = current_map.flag_position[1]
+            print(obj)
+        if type(obj) is gameobjects.Box:
+            if obj.movable:
+                space.remove(obj.body)
+            space.remove(obj.shape)
+            game_objects_list.remove(obj)
+    
+    create_boxes()
+    
+    for key, value in score_dict.items():
+        print("Player", key, ' : ', value)
+
+
+
 def create_tanks():
     #-- Create the tanks
     # Loop over the starting poistion
@@ -150,6 +180,7 @@ def collision_bullet_tank(arb, space, data):
                 game_objects_list.append(tank_explosion)
                 sounds.explosion_sound()
                 tank.is_alive = False
+                tank.hitpoints = 2
 
             space.remove(bullet_shape, bullet_shape.body)
 
@@ -237,11 +268,11 @@ def physics_update(skip_update): #update
             if type(obj) is gameobjects.Tank:
                 obj.try_grab_flag(flag)
                 if obj.has_won():
+                    obj.flag = None
                     obj.score += 1
                     score_dict[obj.player_number] = obj.score
-                    sounds.victory_sound()
-                    for key, value in score_dict.items():
-                        print("Player", key, ' : ', value)
+                    reset_game()
+
 
 
         skip_update = 2

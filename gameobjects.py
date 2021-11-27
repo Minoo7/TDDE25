@@ -6,7 +6,7 @@ import math
 import copy
 import sounds
 
-DEBUG = False # Change this to set it in debug mode
+DEBUG = True # Change this to set it in debug mode
 
 
 def physics_to_display(x):
@@ -142,7 +142,6 @@ class Tank(GamePhysicsObject):
 
         self.NORMAL_MAX_SPEED = 2.0
         self.FLAG_MAX_SPEED = self.NORMAL_MAX_SPEED * 0.5
-
         self.x = x
         self.y = y
         self.flag                 = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
@@ -158,7 +157,7 @@ class Tank(GamePhysicsObject):
         self.wins = 0
         self.score = 0
         self.bullet_speed = 2.0
-
+    
         self.respawning = False
         self.blink_count = 0
         self.resp_time = 0
@@ -292,6 +291,7 @@ class Box(GamePhysicsObject):
     def __init__(self, x, y, sprite, movable, space, destructable):
         """ It takes as arguments the coordinate of the starting position of the box (x,y) and the box model (boxmodel). """
         super().__init__(x, y, 0, sprite, space, movable)
+        self.movable = movable
         self.destructable = destructable
         self.shape.collision_type = 3              #Define the collision type of the boxes as 3
         self.x = x
