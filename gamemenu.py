@@ -2,6 +2,8 @@ import pygame
 from pygame.constants import FULLSCREEN
 import pymunk
 
+# Under konstruktion
+
 #Intiliaze game
 pygame.init()
 pygame.font.init()

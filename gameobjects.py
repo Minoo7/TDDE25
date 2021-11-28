@@ -6,7 +6,7 @@ import math
 import copy
 import sounds
 
-DEBUG = True # Change this to set it in debug mode
+DEBUG = False # Change this to set it in debug mode
 
 
 def physics_to_display(x):
@@ -148,7 +148,7 @@ class Tank(GamePhysicsObject):
         self.max_speed        = self.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
         self.start_position       = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
         self.shape.collision_type = 1                       # Define the collision type of the tank as 1
-        #eget:
+        #Eget:
         self.player_number = None
         self.bullet = None
         self.shooting = False
@@ -215,6 +215,15 @@ class Tank(GamePhysicsObject):
             self.body.position = self.start_position
             self.respawning = True
             self.is_alive = True
+        
+        
+    def reset_tank(self, flag_start):
+    
+        self.flag_pos = pymunk.Vec2d(flag_start[0], flag_start[1])
+        if self.flag != None:
+            self.flag.is_on_tank = False
+            self.flag = None
+        self.body.position = self.start_position
 
 
     def post_update(self, time):
@@ -300,7 +309,6 @@ class Box(GamePhysicsObject):
 
     def get_type(self):
         return self.destructable
-
 
 def get_box_with_type(x, y, type, space):
     (x, y) = (x + 0.5, y + 0.5) # Offsets the coordinate to the center of the tile
