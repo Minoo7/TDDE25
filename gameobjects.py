@@ -158,11 +158,13 @@ class Tank(GamePhysicsObject):
         self.score = 0
         self.bullet_speed = 2.0
     
-        self.respawning = False
+        self.protection = False
         self.blink_count = 0
-        self.resp_time = 0
+        self.protec_timer = 0
 
-        self.is_alive = True
+        self.orientation = orientation
+
+        self.alive = True
 
     def accelerate(self):
         """ Call this function to make the tank move forward. """
@@ -206,24 +208,28 @@ class Tank(GamePhysicsObject):
         self.body.angular_velocity += self.rotation * self.ACCELERATION
         self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
 
-        if not self.is_alive:
+        if not self.alive:
             if self.flag != None:
                 if self.flag.is_on_tank != None:
                     self.flag_pos = pymunk.Vec2d(self.flag.x, self.flag.y)
                     self.flag.is_on_tank = False
                     self.flag = None
-            self.body.position = self.start_position
-            self.respawning = True
-            self.is_alive = True
-        
+            #self.body.position = self.start_position
+            self.protection = True
+            self.spawn_reset()
+            self.alive = True
+    
+    def spawn_reset(self):
+        self.stop_moving()
+        self.body.position = self.start_position
+        self.body.angle     = math.radians(self.orientation)
         
     def reset_tank(self, flag_start):
-    
         self.flag_pos = pymunk.Vec2d(flag_start[0], flag_start[1])
         if self.flag != None:
             self.flag.is_on_tank = False
             self.flag = None
-        self.body.position = self.start_position
+        self.spawn_reset()
 
 
     def post_update(self, time):
@@ -239,8 +245,8 @@ class Tank(GamePhysicsObject):
         else:
             self.max_speed = self.NORMAL_MAX_SPEED
 
-        if self.respawning:
-            if 500 < (time - self.resp_time):
+        if self.protection:
+            if 500 < (time - self.protec_timer):
                 self.blink_count += 1
                 alpha = self.sprite.get_alpha()
                 if alpha == 200 or alpha == 255:
@@ -248,13 +254,12 @@ class Tank(GamePhysicsObject):
                 elif alpha == 50:
                     val = 200
                 self.sprite.set_alpha(val)
-                self.resp_time = time
+                self.protec_timer = time
             if self.blink_count > 6:
                 self.blink_count = 0
                 self.sprite.set_alpha(255)
-                self.resp_time = 0
-                self.respawning = False
-
+                self.protec_timer = 0
+                self.protection = False
 
     def try_grab_flag(self, flag):
         """ Call this function to try to grab the flag, if the flag is not on other tank

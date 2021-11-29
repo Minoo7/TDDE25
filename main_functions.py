@@ -104,10 +104,10 @@ def create_boxes():
             if(box_type != 0):
                 # Create a "Box" using the box_type, aswell as the x,y coordinates,
                 # and the pymunk space
-                box = gameobjects.get_box_with_type(x, y, box_type, space)
-                game_objects_list.append(box)
 
-
+                #box = gameobjects.get_box_with_type(x, y, box_type, space)
+                #game_objects_list.append(box)
+                game_objects_list.append(gameobjects.get_box_with_type(x, y, box_type, space))
 
 
 def create_tanks():
@@ -155,6 +155,8 @@ def reset_game():
                 space.remove(obj.body)
             space.remove(obj.shape)
             game_objects_list.remove(obj)
+        if type(obj) is ai.Ai:
+            game_objects_list[game_objects_list.index(obj)] = ai.Ai(obj.tank, game_objects_list, tanks_list, space, current_map)
     
     create_boxes()
     
@@ -163,22 +165,25 @@ def reset_game():
 
 def ai_decide():
     """Ai:n bestämmer vad den ska göra"""
-    for tank_ai in ai_list:
-        tank_ai.decide(game_objects_list, pygame.time.get_ticks(), space)
+    for i in range(len(ai_list)):
+        #ai = ai_list[i] 
+        if ai_list[i].tank.protection:
+            ai_list[i] = ai.Ai(ai_list[i].tank, game_objects_list, tanks_list, space, current_map)
+        ai_list[i].decide(game_objects_list, pygame.time.get_ticks(), space)
 
 def collision_bullet_tank(arb, space, data):
     """Hanterar kollision mellan tank och bullet"""
     tank = arb.shapes[0].parent
     bullet_shape = arb.shapes[1]
     if not tank.get_bullet() == bullet_shape.parent: # Förhindar tanks från att skjuta sig själv
-        if not tank.respawning:
+        if not tank.protection:
             if tank.hitpoints > 1:
                 tank.hitpoints -= 1
             else:
                 tank_explosion = gameobjects.Explosion(tank.body.position[0], tank.body.position[1])
                 game_objects_list.append(tank_explosion)
                 sounds.explosion_sound()
-                tank.is_alive = False
+                tank.alive = False
                 tank.hitpoints = 2
 
             space.remove(bullet_shape, bullet_shape.body)
@@ -233,6 +238,7 @@ def event_handler(running):
                     tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
                 
                 if event.key == K_x: # Test key
+                    print(ai_list[1].pt)
                     pass
 
             if args.hot_multiplayer:

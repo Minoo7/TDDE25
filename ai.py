@@ -50,6 +50,8 @@ class Ai:
         self.prev = 0
 
         self.metal = False
+
+        self.pt = []
     
     def ray_cast(self):
 
@@ -174,10 +176,8 @@ class Ai:
                 continue # Start from top
             next_coord = path.popleft()
             yield
-
             self.update_angle(next_coord)
             self.turn()
-
             while not self.correct_angle(): #while not correct_angle()
                 self.update_angle(next_coord)
                 yield
@@ -189,7 +189,11 @@ class Ai:
     def decide(self, lst, time, space):
         """ Main decision function that gets called on every tick of the game. """
         self.maybe_shoot(lst, time, space)
-        next(self.move_cycle)
+        #if self.move_cycle:
+        if next(self.move_cycle, False) == False:
+            ##print("is false")
+            pass
+
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,

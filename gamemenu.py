@@ -1,6 +1,8 @@
 import pygame
 from pygame.constants import FULLSCREEN
 import pymunk
+import main_functions
+import maps
 
 # Under konstruktion
 
@@ -47,23 +49,35 @@ def mappicker():
     screen.fill(navajowhite)
 
     mappick = font.render('Choose a map', False, black)
-    play = smallerfont.render('Play!', False, black)
+    dust2 = smallerfont.render('Dust 2', False, black)
+    tilted_towers = smallerfont.render('Tilted Towers', False, black)
+    cobblestone = smallerfont.render('Cobblestone', False, black)
     quitgame = smallerfont.render('Quit!', False, black)
-    tiltedtower = smallerfont.render('Tilted Towers', False, black)
-    retailrow = smallerfont.render
 
     center = width / 2
 
-    while True:
-        start_button = create_button(30, 250, 125, 26, slategrey, white)
-        quit_button = create_button(30, 300, 125, 26, slategrey, white)
+    running = True
+    while running:
+        tilted_towers_button = create_button(100, 400, 140, 35, slategrey, white)
+        dust2_button = create_button(250, 400, 140, 35, slategrey, white)
+        cobblestone_button = create_button(400, 400, 140, 35, slategrey, white)
+        quit_button = create_button(25, 670, 125, 26, slategrey, white)
 
         screen.blit(mappick, (center - (mappick.get_rect().width / 2), 100))
-        screen.blit(play, (75, 250))
-        screen.blit(quitgame, (75, 300))
+        screen.blit(dust2, (103, 403))
+        screen.blit(tilted_towers, (253, 403))
+        screen.blit(cobblestone, (403, 403))
+        screen.blit(quitgame, (65, 670))
         
-        if start_button:
-            pass
+        if tilted_towers_button:
+            main_functions.current_map = maps.map0
+            running = False
+        if dust2_button:
+            main_functions.current_map = maps.map1
+            running = False
+        if cobblestone_button:
+            main_functions.current_map = maps.map2
+            running = False
         if quit_button:
             pygame.quit()
             quit()
@@ -86,7 +100,8 @@ def gameintro():
 
     center = width / 2
 
-    while True:
+    running = True
+    while running:
         singleplayer_button = create_button(30, 250, 125, 27, slategrey, white)
         multiplayer_button = create_button(30, 300, 125, 27, slategrey, white)
         quit_button = create_button(30, 350, 125, 27, slategrey, white)
@@ -98,8 +113,12 @@ def gameintro():
 
         if singleplayer_button:
             mappicker()
+            main_functions.args.singleplayer = True
+            return
         if multiplayer_button:
             mappicker()
+            main_functions.args.hot_multiplayer = True
+            return 
         if quit_button:
             pygame.quit()
             quit()
@@ -111,5 +130,4 @@ def gameintro():
 
         clock.tick(10)
 
-gameintro()
 

@@ -23,6 +23,7 @@ class Map:
     return self.boxes[y][x]
 
 # Första är x och andra y
+
 map0 = Map(9, 9, 
                [ [0, 1, 0, 0, 0, 0, 0, 1, 0], 
                  [0, 1, 0, 2, 0, 2, 0, 1, 0], 
