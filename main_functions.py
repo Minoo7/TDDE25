@@ -2,7 +2,6 @@ import pygame
 from pygame.locals import *
 from pygame.color import *
 import pymunk
-
 # import gamemenu Under konstruktion
 
 # https://gitlab.liu.se/tdde25/ctf/-/wikis/Tutorial
@@ -32,6 +31,8 @@ import gameobjects
 import maps
 import argparse
 
+import gamemenu
+
 # Loading and playing background music:
 sounds.background_music()
 
@@ -45,15 +46,30 @@ FRAMERATE = 50
 arb = pymunk.Arbiter
 score_dict = {}
 
-# Define the current level
-current_map         = maps.map0
-
 # Define flags from commandline deciding between multiplayer and singleplayer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--hot-multiplayer', default=False, action='store_true') # Justera False till True för enklare testning
 parser.add_argument('--singleplayer', default=False, action='store_true')
 args = parser.parse_args()
+
+if (args.hot_multiplayer == False) and (args.singleplayer == False):
+    gamemode = gamemenu.gameintro()
+    if gamemode == 1:
+        args.singleplayer = True
+    if gamemode == 2:
+        args.hot_multiplayer = True
+
+# Define the current level
+current_map         = gamemenu.mappicker()
+
+
+# Define the current level
+
+current_map         = gamemenu.mappicker()
+
+# Decide Gamemode (single/multiplayer)
+
 
 # Initialize world border
 
@@ -144,32 +160,24 @@ def reset_game():
     sounds.victory_sound()
 
     for obj in game_objects_list[:]:
-        if type(obj) is gameobjects.Tank:
+        if isinstance(obj, gameobjects.Tank):
             obj.reset_tank(current_map.flag_position)
-        if type(obj) is gameobjects.Flag:
+        if isinstance(obj, gameobjects.Flag):
             obj.is_on_tank = False
             obj.x = current_map.flag_position[0]
             obj.y = current_map.flag_position[1]
-        if type(obj) is gameobjects.Box:
+        if isinstance(obj, gameobjects.Box):
             if obj.movable:
                 space.remove(obj.body)
             space.remove(obj.shape)
             game_objects_list.remove(obj)
-        if type(obj) is ai.Ai:
-            game_objects_list[game_objects_list.index(obj)] = ai.Ai(obj.tank, game_objects_list, tanks_list, space, current_map)
+    for i in range(len(ai_list)):
+        new_ai(i)
     
     create_boxes()
     
     for key, value in score_dict.items():
         print("Player", key, ' : ', value)
-
-def ai_decide():
-    """Ai:n bestämmer vad den ska göra"""
-    for i in range(len(ai_list)):
-        #ai = ai_list[i] 
-        if ai_list[i].tank.protection:
-            ai_list[i] = ai.Ai(ai_list[i].tank, game_objects_list, tanks_list, space, current_map)
-        ai_list[i].decide(game_objects_list, pygame.time.get_ticks(), space)
 
 def collision_bullet_tank(arb, space, data):
     """Hanterar kollision mellan tank och bullet"""
@@ -180,7 +188,7 @@ def collision_bullet_tank(arb, space, data):
             if tank.hitpoints > 1:
                 tank.hitpoints -= 1
             else:
-                tank_explosion = gameobjects.Explosion(tank.body.position[0], tank.body.position[1])
+                tank_explosion = gameobjects.Explosion(tank.body.position[0], tank.body.position[1], game_objects_list)
                 game_objects_list.append(tank_explosion)
                 sounds.explosion_sound()
                 tank.alive = False
@@ -203,7 +211,7 @@ def collision_bullet_box(arb, space, data):
         else:
             space.remove(box.shape, box.body)
             game_objects_list.remove(box)
-            box_explosion = gameobjects.Explosion(box.body.position[0], box.body.position[1])
+            box_explosion = gameobjects.Explosion(box.body.position[0], box.body.position[1], game_objects_list)
             game_objects_list.append(box_explosion)
             sounds.explosion_sound()
 
@@ -216,6 +224,11 @@ def collision_bullet_box(arb, space, data):
 
 def event_handler(running):
     """Hanterar key-presses/events"""
+    #global key_action
+    key_action = {K_w: tanks_list[0].accelerate, K_s: tanks_list[0].decelerate, K_a: tanks_list[0].turn_left, K_d: tanks_list[0].turn_right,
+    K_UP: tanks_list[1].accelerate, K_DOWN: tanks_list[1].decelerate, K_LEFT: tanks_list[1].turn_left, K_RIGHT: tanks_list[1].turn_right}
+    key_action_up = {K_w: tanks_list[0].stop_moving, K_s: tanks_list[0].stop_moving, K_a: tanks_list[0].stop_moving, K_d: tanks_list[0].stop_moving,
+    K_UP: tanks_list[1].stop_moving, K_DOWN: tanks_list[1].stop_moving, K_LEFT: tanks_list[1].stop_turning, K_RIGHT: tanks_list[1].stop_turning}
     for event in pygame.event.get():
         
         # Stäng av spelet - ESC
@@ -226,44 +239,20 @@ def event_handler(running):
         # Spelarnas kontroller
         if event.type == KEYDOWN:
             if args.singleplayer or args.hot_multiplayer:
-                if event.key == K_w:
-                    tanks_list[0].accelerate()
-                if event.key == K_s:
-                    tanks_list[0].decelerate()
-                if event.key == K_a:
-                    tanks_list[0].turn_left()
-                if event.key == K_d:
-                    tanks_list[0].turn_right()
+                #if event.key == K_x: # Test key
+                #    print(ai_list[1].pt)
                 if event.key == K_SPACE:
                     tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
-                
-                if event.key == K_x: # Test key
-                    print(ai_list[1].pt)
-                    pass
-
-            if args.hot_multiplayer:
-                if event.key == K_UP:
-                    tanks_list[1].accelerate()
-                if event.key == K_DOWN:
-                    tanks_list[1].decelerate()
-                if event.key == K_LEFT:
-                    tanks_list[1].turn_left()
-                if event.key == K_RIGHT:
-                    tanks_list[1].turn_right()
+                elif event.key in key_action:
+                    key_action[event.key]()
                 if event.key == K_RETURN:
                     tanks_list[1].shoot(game_objects_list, pygame.time.get_ticks(), space)
  
-        elif event.type == KEYUP:
-            if args.singleplayer or args.hot_multiplayer:
-                if event.key in (K_w, K_s):
-                    tanks_list[0].stop_moving()
-                if event.key in (K_a, K_d):
-                    tanks_list[0].stop_turning()
-                if args.hot_multiplayer:
-                    if event.key in (K_UP, K_DOWN):
-                        tanks_list[1].stop_moving()
-                    if event.key in (K_LEFT, K_RIGHT):
-                        tanks_list[1].stop_turning()
+        if event.type == KEYUP:
+            if event.key in key_action_up:
+                key_action_up[event.key]()
+            #splitta dioctionaries nästa gång !! *
+            #if args.singleplayer or args.hot_multiplayer:
 
 #-- Update physics
 def physics_update(skip_update): #update
@@ -272,7 +261,7 @@ def physics_update(skip_update): #update
         # acceleration.
         for obj in game_objects_list:
             obj.update()
-            if type(obj) is gameobjects.Tank:
+            if isinstance(obj, gameobjects.Tank):
                 obj.try_grab_flag(flag)
                 if obj.has_won():
                     obj.flag = None
@@ -280,11 +269,12 @@ def physics_update(skip_update): #update
                     score_dict[obj.player_number] = obj.score
                     reset_game()
 
-
-
         skip_update = 2
     else:
         skip_update -= 1
+
+def new_ai(index):
+    ai_list[index] = ai.Ai(ai_list[index].tank, game_objects_list, tanks_list, space, current_map)
 
 def object_update():
     #   Check collisions and update the objects position
@@ -292,9 +282,11 @@ def object_update():
     #   Update object that depends on an other object position (for instance a flag)
     for obj in game_objects_list: # for timers
         obj.post_update(pygame.time.get_ticks())
-        if type(obj) is gameobjects.Explosion:
-            if not obj.active:
-                game_objects_list.remove(obj)
+    for i in range(len(ai_list)):
+        if ai_list[i].tank.respawn:
+            ai_list[i].tank.respawn = False
+            new_ai(i)
+        ai_list[i].decide(game_objects_list, pygame.time.get_ticks(), space)
 
 def display_update():
     #-- Update Display
@@ -306,18 +298,22 @@ def display_update():
     # Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
-#-- Create background, boxes and tanks
-grass_background()
-create_boxes()
-create_tanks()
+#def __init__():
+def __init__():
+    #-- Create background, boxes and tanks
 
-#-- Create the flag and the bases
-flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
-game_objects_list.append(flag)
+    grass_background()
+    create_boxes()
+    create_tanks()
 
-#-- Collision Handlers
+    #-- Create the flag and the bases
+    global flag
+    flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
+    game_objects_list.append(flag)
 
-h_tank_bullet = space.add_collision_handler(1, 2)
-h_tank_bullet.pre_solve = collision_bullet_tank
-h_bullet_box = space.add_collision_handler(2, 3)
-h_bullet_box.pre_solve = collision_bullet_box
+    #-- Collision Handlers
+
+    h_tank_bullet = space.add_collision_handler(1, 2)
+    h_tank_bullet.pre_solve = collision_bullet_tank
+    h_bullet_box = space.add_collision_handler(2, 3)
+    h_bullet_box.pre_solve = collision_bullet_box

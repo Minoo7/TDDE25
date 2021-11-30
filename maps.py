@@ -1,7 +1,6 @@
 import images
 import pygame
 
-
 class Map:
   """ An instance of Map is a blueprint for how the game map will look. """
 
@@ -16,7 +15,7 @@ class Map:
     self.flag_position      = flag_position
 
   def rect(self):
-    return pygame.Rect(0, 0, images.TILE_SIZE*self.width,  images.TILE_SIZE*self.height)
+    return pygame.Rect(0, 0, images.TILE_SIZE*self.width, images.TILE_SIZE*self.height)
   
   def boxAt(self, x, y):
     """ Return the type of the box at coordinates (x, y). """
@@ -24,48 +23,20 @@ class Map:
 
 # Första är x och andra y
 
-map0 = Map(9, 9, 
-               [ [0, 1, 0, 0, 0, 0, 0, 1, 0], 
-                 [0, 1, 0, 2, 0, 2, 0, 1, 0], 
-                 [0, 2, 0, 1, 0, 1, 0, 2, 0], 
-                 [0, 0, 0, 1, 0, 1, 0, 0, 0], 
-                 [1, 1, 0, 3, 0, 3, 0, 1, 1],
-                 [0, 0, 0, 1, 0, 1, 0, 0, 0], 
-                 [0, 2, 0, 1, 0, 1, 0, 2, 0], 
-                 [0, 1, 0, 2, 0, 2, 0, 1, 0], 
-                 [0, 1, 0, 0, 0, 0, 0, 1, 0] ],
-               [[0.5, 0.5, 0], [8.5, 0.5, 0], [0.5, 8.5, 180], [8.5, 8.5, 180]], [4.5, 4.5])
+def choose_map(map):
 
-map1 = Map(15, 11, 
-           [ [ 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0],
-             [ 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0], 
-             [ 0, 1, 0, 3, 1, 1, 0, 0, 0, 1, 1, 3, 0, 1, 0], 
-             [ 0, 2, 0, 0, 3, 0, 0, 2, 0, 0, 3, 0, 0, 2, 0], 
-             [ 2, 1, 0, 1, 1, 0, 1, 3, 1, 0, 1, 1, 0, 1, 2], 
-             [ 1, 1, 3, 0, 3, 2, 3, 0, 3, 2, 3, 0, 3, 1, 1], 
-             [ 2, 1, 0, 1, 1, 0, 1, 3, 1, 0, 1, 1, 0, 1, 2], 
-             [ 0, 2, 0, 0, 3, 0, 0, 2, 0, 0, 3, 0, 0, 2, 0], 
-             [ 0, 1, 0, 3, 1, 1, 0, 0, 0, 1, 1, 3, 0, 1, 0], 
-             [ 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0], 
-             [ 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0] ], 
-           [[0.5, 0.5, 0], [14.5, 0.5, 0], [0.5, 10.5, 180], [14.5, 10.5, 180], [7.5, 0.5,  0], [7.5, 10.5, 180]], [7.5, 5.5])
+    with open(f"data/maps/{map}.txt") as map_choice:
+        map_list = []
+        size = map_choice.readline().split(" ")
+        width = eval(size[0])
+        height = eval(size[1])
+        for _ in range(height):
+            map_list.append([eval(x) for x in map_choice.readline().strip().split(" ")])
+        tank_start_pos = map_choice.readline().strip().split("#")
+        for i in range(len(tank_start_pos)):
+            tank_start_pos[i] = eval(tank_start_pos[i])
+        flag_pos = map_choice.readline().strip().split("!")
+        for i in range(len(flag_pos)):
+            flag_pos[i] = float(flag_pos[i])
 
-map2 = Map(10, 5, 
-           [ [ 0, 2, 0, 2, 0, 0, 2, 0, 2, 0 ],
-             [ 0, 3, 0, 1, 3, 3, 1, 0, 3, 0 ],
-             [ 0, 1, 0, 1, 0, 0, 1, 0, 1, 0 ], 
-             [ 0, 3, 0, 1, 3, 3, 1, 0, 3, 0 ], 
-             [ 0, 2, 0, 2, 0, 0, 2, 0, 2, 0 ] ], 
-           [[0.5, 2.5, 270], [9.5, 2.5, 90]], [5, 2.5] )
-
-map3 = Map(9, 9, # test map
-               [ [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0] ],
-               [[0.5, 0.5, 0], [8.5, 0.5, 0], [0.5, 8.5, 180], [8.5, 8.5, 180]], [4.5, 4.5])
+        return Map(width, height, map_list, tank_start_pos, flag_pos)

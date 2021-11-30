@@ -1,11 +1,36 @@
 import pygame
 from pygame.constants import FULLSCREEN
 import pymunk
-import main_functions
 import maps
 
-# Under konstruktion
+# CONSTANT
 
+PREVIEW_TILE_SIZE = 10
+
+# Map creator
+
+"""
+background = pygame.Surface(screen.get_size())
+
+def grass_background():
+    # Copy the grass tile all over the level area
+    for x in range(0, current_map.width):
+        for y in range(0,  current_map.height):
+            background.blit(images.grass,  (x*images.TILE_SIZE, y*images.TILE_SIZE))
+
+def create_boxes():
+    # -- Create the boxes
+    for x in range(0, current_map.width):
+        for y in range(0,  current_map.height):
+            # Get the type of boxes
+            box_type  = current_map.boxAt(x, y)
+            # If the box type is not 0 (aka grass tile), create a box
+            if(box_type != 0):
+                # Create a "Box" using the box_type, aswell as the x,y coordinates,
+                # and the pymunk space
+                box = gameobjects.get_box_with_type(x, y, box_type, space)
+                game_objects_list.append(box)
+"""
 #Intiliaze game
 pygame.init()
 pygame.font.init()
@@ -70,14 +95,17 @@ def mappicker():
         screen.blit(quitgame, (65, 670))
         
         if tilted_towers_button:
-            main_functions.current_map = maps.map0
+            current_map = maps.choose_map("map0") # Ändra till Jockes funktion
             running = False
+            return current_map
         if dust2_button:
-            main_functions.current_map = maps.map1
+            current_map = maps.choose_map("map1") # Ändra till Jockes funktion
             running = False
+            return current_map
         if cobblestone_button:
-            main_functions.current_map = maps.map2
+            current_map = maps.choose_map("map2") # Ändra till Jockes funktion
             running = False
+            return current_map
         if quit_button:
             pygame.quit()
             quit()
@@ -112,13 +140,11 @@ def gameintro():
         screen.blit(quitgame, (75, 350))
 
         if singleplayer_button:
-            mappicker()
-            main_functions.args.singleplayer = True
-            return
+            gamemode = 1
+            return gamemode
         if multiplayer_button:
-            mappicker()
-            main_functions.args.hot_multiplayer = True
-            return 
+            gamemode = 2
+            return gamemode
         if quit_button:
             pygame.quit()
             quit()

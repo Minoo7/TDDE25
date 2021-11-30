@@ -161,6 +161,7 @@ class Tank(GamePhysicsObject):
         self.protection = False
         self.blink_count = 0
         self.protec_timer = 0
+        self.respawn = False
 
         self.orientation = orientation
 
@@ -217,6 +218,7 @@ class Tank(GamePhysicsObject):
             #self.body.position = self.start_position
             self.protection = True
             self.spawn_reset()
+            self.respawn = True
             self.alive = True
     
     def spawn_reset(self):
@@ -353,11 +355,12 @@ class Flag(GameVisibleObject):
 class Explosion(GameVisibleObject):
     """ This class extends GameVisibleObject for explosions."""
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, game_objects_list):
+        super().__init__(x, y,  copy.copy(images.explosion))
         self.timer = 0
         self.opacity = 0
-        self.active = True
-        super().__init__(x, y,  copy.copy(images.explosion))
+        self.game_objects_list = game_objects_list
+        #self.game_objects_list.remove(self)
     
     def post_update(self, time):
         if 2000 < (time - self.timer):
@@ -365,7 +368,7 @@ class Explosion(GameVisibleObject):
         if self.sprite.get_alpha() < 1: # if invisible
             self.timer = 0
             self.opacity = 0
-            self.active = False
+            self.game_objects_list.remove(self)
 
 
 class Bullet(GamePhysicsObject):

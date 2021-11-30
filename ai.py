@@ -194,7 +194,6 @@ class Ai:
             ##print("is false")
             pass
 
-
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
             return the position of our home base.
