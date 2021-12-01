@@ -63,14 +63,6 @@ if (args.hot_multiplayer == False) and (args.singleplayer == False):
 # Define the current level
 current_map         = gamemenu.mappicker()
 
-
-# Define the current level
-
-current_map         = gamemenu.mappicker()
-
-# Decide Gamemode (single/multiplayer)
-
-
 # Initialize world border
 
 width = current_map.width
@@ -102,6 +94,32 @@ screen = pygame.display.set_mode((current_map.rect().size), pygame.RESIZABLE)
 
 # -- Generate the background
 background = pygame.Surface(screen.get_size())
+
+def score_board():
+    font = pygame.font.SysFont("Tahoma", 24)
+
+    box_x = current_map.rect().size[0]//4
+    box_w = current_map.rect().size[0]//2
+    box_y = current_map.rect().size[1]//4
+    box_h = current_map.rect().size[1]//2
+
+    
+    rect_outer = (box_x, box_y, box_w, box_h)
+    pygame.draw.rect(screen, (255,255,255), rect_outer)
+    rect_inner = (box_x+5, box_y+5, box_w-10, box_h-10)
+    pygame.draw.rect(screen, (0, 0, 0), rect_inner)
+    
+    str_start = box_y + 10
+
+
+    for player in score_dict:
+        score_str = f"Player {player} : {score_dict[player]}"
+        score_board = font.render(f"{score_str}", False, (255, 255, 255))
+        screen.blit(score_board, (box_w - (score_board.get_rect().width / 2), (str_start + (score_board.get_rect().height/len(score_dict)))))
+        str_start += score_board.get_rect().height
+    
+    pygame.display.flip()
+    pygame.time.delay(3000)
 
 def grass_background():
     
@@ -146,7 +164,7 @@ def create_tanks():
         base = gameobjects.GameVisibleObject(tanks_list[i].start_position.x, tanks_list[i].start_position.y, images.bases[i])
         game_objects_list.append(base)
 
-        if (args.singleplayer and i > 0) or (args.hot_multiplayer and i > 1): 
+        if (args.singleplayer and i > 0) or (args.hot_multiplayer and i > 1):
             # Skapar ai-tanks
             tank_ai = ai.Ai(tank, game_objects_list, tanks_list, space, current_map)
             tank_ai.tank.bullet_speed *= 1.2
@@ -178,6 +196,7 @@ def reset_game():
     
     for key, value in score_dict.items():
         print("Player", key, ' : ', value)
+    score_board()
 
 def collision_bullet_tank(arb, space, data):
     """Hanterar kollision mellan tank och bullet"""
@@ -225,10 +244,6 @@ def collision_bullet_box(arb, space, data):
 def event_handler(running):
     """Hanterar key-presses/events"""
     #global key_action
-    key_action = {K_w: tanks_list[0].accelerate, K_s: tanks_list[0].decelerate, K_a: tanks_list[0].turn_left, K_d: tanks_list[0].turn_right,
-    K_UP: tanks_list[1].accelerate, K_DOWN: tanks_list[1].decelerate, K_LEFT: tanks_list[1].turn_left, K_RIGHT: tanks_list[1].turn_right}
-    key_action_up = {K_w: tanks_list[0].stop_moving, K_s: tanks_list[0].stop_moving, K_a: tanks_list[0].stop_moving, K_d: tanks_list[0].stop_moving,
-    K_UP: tanks_list[1].stop_moving, K_DOWN: tanks_list[1].stop_moving, K_LEFT: tanks_list[1].stop_turning, K_RIGHT: tanks_list[1].stop_turning}
     for event in pygame.event.get():
         
         # Stäng av spelet - ESC
@@ -305,6 +320,19 @@ def __init__():
     grass_background()
     create_boxes()
     create_tanks()
+
+    global key_action
+    global key_action_up
+
+    key_action = {K_w: tanks_list[0].accelerate, K_s: tanks_list[0].decelerate, K_a: tanks_list[0].turn_left, K_d: tanks_list[0].turn_right,
+                  K_UP: tanks_list[1].accelerate, K_DOWN: tanks_list[1].decelerate, K_LEFT: tanks_list[1].turn_left, K_RIGHT: tanks_list[1].turn_right}
+    key_action_up = {K_w: tanks_list[0].stop_moving, K_s: tanks_list[0].stop_moving, K_a: tanks_list[0].stop_turning, K_d: tanks_list[0].stop_turning,
+                     K_UP: tanks_list[1].stop_moving, K_DOWN: tanks_list[1].stop_moving, K_LEFT: tanks_list[1].stop_turning, K_RIGHT: tanks_list[1].stop_turning}
+
+    #method for splitting dictionary in half to prevent player 2 controls of controlling ai:
+    if args.singleplayer:
+        key_action = dict(list(key_action.items())[:len(key_action)//2:])
+        key_action_up = dict(list(key_action_up.items())[:len(key_action_up)//2:])
 
     #-- Create the flag and the bases
     global flag

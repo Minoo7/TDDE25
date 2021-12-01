@@ -2,45 +2,64 @@ import pygame
 from pygame.constants import FULLSCREEN
 import pymunk
 import maps
+import images
+import gameobjects
+
+#-- Start a screen
+width = height = 720
+screen = pygame.display.set_mode((width, height))
 
 # CONSTANT
-
 PREVIEW_TILE_SIZE = 10
 
-# Map creator
+# Intiliaze game
+pygame.init()
+pygame.font.init()
+pygame.display.set_caption('Main Menu')
+clock = pygame.time.Clock()
 
-"""
+# Intiliaze objects for map preview
+game_objects_list = []
+space1 = pymunk.Space()
+
+# Map creator
 background = pygame.Surface(screen.get_size())
 
-def grass_background():
+def grass_background(current_map):
+    #print("hej")
     # Copy the grass tile all over the level area
+    scl = pygame.transform.scale(images.grass, (PREVIEW_TILE_SIZE, PREVIEW_TILE_SIZE))
     for x in range(0, current_map.width):
         for y in range(0,  current_map.height):
-            background.blit(images.grass,  (x*images.TILE_SIZE, y*images.TILE_SIZE))
+            background.blit(scl,  (x*PREVIEW_TILE_SIZE, y*PREVIEW_TILE_SIZE))
 
-def create_boxes():
+def create_boxes(current_map):
     # -- Create the boxes
     for x in range(0, current_map.width):
         for y in range(0,  current_map.height):
             # Get the type of boxes
             box_type  = current_map.boxAt(x, y)
             # If the box type is not 0 (aka grass tile), create a box
-            if(box_type != 0):
+            if box_type != 0:
                 # Create a "Box" using the box_type, aswell as the x,y coordinates,
                 # and the pymunk space
-                box = gameobjects.get_box_with_type(x, y, box_type, space)
-                game_objects_list.append(box)
-"""
-#Intiliaze game
-pygame.init()
-pygame.font.init()
-pygame.display.set_caption('Main Menu')
-clock = pygame.time.Clock()
+                background.blit(pygame.transform.scale(gameobjects.get_box_with_type(x, y, box_type, space1).sprite,
+                (PREVIEW_TILE_SIZE, PREVIEW_TILE_SIZE)), (x*PREVIEW_TILE_SIZE, y*PREVIEW_TILE_SIZE))
+
+def display_update(coordinates):
+    #-- Update Display
+    # Display the background on the screen
+    screen.blit(background, coordinates)
+    # Update the display of the game objects on the screen
+    for obj in game_objects_list:
+        obj.update_screen(screen)
+    # Redisplay the entire screen (see double buffer technique)
+    pygame.display.flip()
 
 #-- Fonts
 font = pygame.font.SysFont('Tahoma', 30, bold=True)
 smallerfont = pygame.font.SysFont('Tahoma', 20)
-#font.Font.bold = 
+
 
 #-- Colors
 slategrey = (112, 128, 144)
@@ -51,9 +70,6 @@ black = (0, 0, 0)
 neongreen = (57, 255, 20)
 navajowhite = (255, 222, 173)
 
-#-- Start a screen
-width = height = 720
-screen = pygame.display.set_mode((width, height))
 
 #-- Button creater
 def create_button(x, y, width, height, hovercolor, defaultcolor):
@@ -72,15 +88,17 @@ def create_button(x, y, width, height, hovercolor, defaultcolor):
 
 def mappicker():
     screen.fill(navajowhite)
-
     mappick = font.render('Choose a map', False, black)
     dust2 = smallerfont.render('Dust 2', False, black)
     tilted_towers = smallerfont.render('Tilted Towers', False, black)
-    cobblestone = smallerfont.render('Cobblestone', False, black)
+    cobblestone = smallerfont.render('Dalaran Arena', False, black)
     quitgame = smallerfont.render('Quit!', False, black)
 
     center = width / 2
 
+    grass_background(maps.choose_map("map1"))
+    create_boxes(maps.choose_map("map1"))
+    display_update((100, 100))
     running = True
     while running:
         tilted_towers_button = create_button(100, 400, 140, 35, slategrey, white)
@@ -93,17 +111,16 @@ def mappicker():
         screen.blit(tilted_towers, (253, 403))
         screen.blit(cobblestone, (403, 403))
         screen.blit(quitgame, (65, 670))
-        
         if tilted_towers_button:
-            current_map = maps.choose_map("map0") # Ändra till Jockes funktion
+            current_map = maps.choose_map("map0") 
             running = False
             return current_map
         if dust2_button:
-            current_map = maps.choose_map("map1") # Ändra till Jockes funktion
+            current_map = maps.choose_map("map1") 
             running = False
             return current_map
         if cobblestone_button:
-            current_map = maps.choose_map("map2") # Ändra till Jockes funktion
+            current_map = maps.choose_map("map2") 
             running = False
             return current_map
         if quit_button:
@@ -121,7 +138,7 @@ def mappicker():
 def gameintro():
     screen.fill(navajowhite)
 
-    playerpicker = font.render('Capture The Flag', False, black)
+    ctf = font.render('Capture The Flag', False, black)
     multiplayertext = smallerfont.render('Multiplayer', False, black)
     singleplayertext = smallerfont.render('Singleplayer', False, black)
     quitgame = smallerfont.render('Quit!', False, black)
@@ -134,7 +151,7 @@ def gameintro():
         multiplayer_button = create_button(30, 300, 125, 27, slategrey, white)
         quit_button = create_button(30, 350, 125, 27, slategrey, white)
 
-        screen.blit(playerpicker, (center - (playerpicker.get_rect().width / 2), 100))
+        screen.blit(ctf, (center - (ctf.get_rect().width / 2), 100))
         screen.blit(singleplayertext, (35, 250))
         screen.blit(multiplayertext, (37, 300))
         screen.blit(quitgame, (75, 350))
