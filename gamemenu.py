@@ -10,7 +10,7 @@ width = height = 720
 screen = pygame.display.set_mode((width, height))
 
 # CONSTANT
-PREVIEW_TILE_SIZE = 8
+PREVIEW_TILE_SIZE = 10
 
 # Intiliaze game
 pygame.init()
@@ -101,32 +101,33 @@ def mappicker():
     background.fill(navajowhite)
     background1.fill(navajowhite)
     background2.fill(navajowhite)
+
+    btns_pos = [(90, (90 + (150/2))), (285, (285 + (150/2))), (480, (480 + (150/2)))]
+
     grass_background(background, maps.choose_map("map0"))
     create_boxes(background, maps.choose_map("map0"))
-    display_update(background, (100, 250))
+    display_update(background, (btns_pos[0][1] - (90 / 2), 400 - 25 - 90))#90
 
     grass_background(background1, maps.choose_map("map1"))
     create_boxes(background1, maps.choose_map("map1"))
-    display_update(background1, (250, 250))
+    display_update(background1, (btns_pos[1][1] - (150 / 2), 400 - 25 - 110))#110
 
     grass_background(background2, maps.choose_map("map2"))
     create_boxes(background2, maps.choose_map("map2"))
-    display_update(background2, (450, 250))
-
-    btns_pos = [(90, (90 + (157.5/2))), (281.25, (281.25 + (157.5/2))), (472.5, (472.5 + (157.5/2)))]
+    display_update(background2, (btns_pos[2][1] - (100 / 2), 400 - 25 - 50))#50
     
     running = True
     while running:
-        dust2_button = create_button(btns_pos[0][0], 400, 157.5, 35, slategrey, white)
-        tilted_towers_button = create_button(btns_pos[1][0], 400, 157.5, 35, slategrey, white)
-        cobblestone_button = create_button(btns_pos[2][0], 400, 157.5, 35, slategrey, white)
+        dust2_button = create_button(btns_pos[0][0], 400, 150, 35, slategrey, white)
+        tilted_towers_button = create_button(btns_pos[1][0], 400, 150, 35, slategrey, white)
+        cobblestone_button = create_button(btns_pos[2][0], 400, 150, 35, slategrey, white)
         quit_button = create_button(25, 670, 125, 26, slategrey, white)
 
         screen.blit(mappick, (center - (mappick.get_rect().width / 2), 100))
         #screen.blit(dust2_text, (dust2_button[0] + 3, dust2_button[1] + 3))
-        screen.blit(dust2_text, (btns_pos[0][1] - (dust2_text.get_rect().width / 2), 407.5))
-        screen.blit(tilted_towers_text, (btns_pos[1][1] - (tilted_towers_text.get_rect().width / 2), 407.5))
-        screen.blit(cobblestone_text, (btns_pos[2][1] - (cobblestone_text.get_rect().width / 2), 407.5))
+        screen.blit(dust2_text, (btns_pos[0][1] - (dust2_text.get_rect().width / 2), 405))
+        screen.blit(tilted_towers_text, (btns_pos[1][1] - (tilted_towers_text.get_rect().width / 2), 405))
+        screen.blit(cobblestone_text, (btns_pos[2][1] - (cobblestone_text.get_rect().width / 2), 405))
         screen.blit(quitgame, (65, 670))
         if dust2_button == True:
             current_map = maps.choose_map("map0") 
