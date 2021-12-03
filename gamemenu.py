@@ -10,7 +10,7 @@ width = height = 720
 screen = pygame.display.set_mode((width, height))
 
 # CONSTANT
-PREVIEW_TILE_SIZE = 10
+PREVIEW_TILE_SIZE = 8
 
 # Intiliaze game
 pygame.init()
@@ -113,21 +113,20 @@ def mappicker():
     create_boxes(background2, maps.choose_map("map2"))
     display_update(background2, (450, 250))
 
-    dust2_button = create_button(90, 400, 135, 35, slategrey, white)
+    btns_pos = [(90, (90 + (157.5/2))), (281.25, (281.25 + (157.5/2))), (472.5, (472.5 + (157.5/2)))]
     
     running = True
     while running:
-        dust2_button = create_button(90, 400, 135, 35, slategrey, white)
-        tilted_towers_button = create_button(292.5, 400, 135, 35, slategrey, white)
-        cobblestone_button = create_button(450, 400, 150, 35, slategrey, white)
+        dust2_button = create_button(btns_pos[0][0], 400, 157.5, 35, slategrey, white)
+        tilted_towers_button = create_button(btns_pos[1][0], 400, 157.5, 35, slategrey, white)
+        cobblestone_button = create_button(btns_pos[2][0], 400, 157.5, 35, slategrey, white)
         quit_button = create_button(25, 670, 125, 26, slategrey, white)
 
         screen.blit(mappick, (center - (mappick.get_rect().width / 2), 100))
         #screen.blit(dust2_text, (dust2_button[0] + 3, dust2_button[1] + 3))
-        screen.blit(dust2_text, (93, 403))
-        screen.blit(tilted_towers_text, (292.5 + 3, 403))
-        #screen.blit(tilted_towers_text, (tilted_towers_button[0], tilted_towers_button[1]))
-        screen.blit(cobblestone_text, (453, 403))
+        screen.blit(dust2_text, (btns_pos[0][1] - (dust2_text.get_rect().width / 2), 407.5))
+        screen.blit(tilted_towers_text, (btns_pos[1][1] - (tilted_towers_text.get_rect().width / 2), 407.5))
+        screen.blit(cobblestone_text, (btns_pos[2][1] - (cobblestone_text.get_rect().width / 2), 407.5))
         screen.blit(quitgame, (65, 670))
         if dust2_button == True:
             current_map = maps.choose_map("map0") 
