@@ -45,6 +45,7 @@ FRAMERATE = 50
 # -- Variables
 arb = pymunk.Arbiter
 score_dict = {}
+rounds_played = 0
 
 # Define flags from commandline deciding between multiplayer and singleplayer
 
@@ -87,7 +88,7 @@ ai_list = []
 
 # -- Resize the screen to a fullscreen
 
-screen = pygame.display.set_mode((current_map.rect().size), pygame.RESIZABLE)
+screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN)
 
 # screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN) # Under konstruktion
 # gamemenu.gameintro() # Under konstruktion
@@ -279,14 +280,65 @@ def physics_update(skip_update): #update
             if isinstance(obj, gameobjects.Tank):
                 obj.try_grab_flag(flag)
                 if obj.has_won():
+                    rounds_played = rounds_played + 1
                     obj.flag = None
                     obj.score += 1
                     score_dict[obj.player_number] = obj.score
                     reset_game()
+                    win_conditions(obj)
+                        
+
 
         skip_update = 2
     else:
         skip_update -= 1
+
+def win_conditions(obj = None):
+    if args.time_condition:
+        if pygame.time.get_ticks() >= 300000:
+            pygame.quit()
+    else:
+        if args.score_condition and obj.score == 5:
+            pygame.quit()
+        elif args.rounds_condition and rounds_played == 10:
+            pygame.quit()
+
+def winning_screen():
+    font = pygame.font.SysFont("Tahoma", 24)
+
+    box_x = current_map.rect().size[0]//4
+    box_w = current_map.rect().size[0]//2
+    box_y = current_map.rect().size[1]//4
+    box_h = current_map.rect().size[1]//2
+
+    
+    rect_outer = (box_x, box_y, box_w, box_h)
+    pygame.draw.rect(screen, (255,255,255), rect_outer)
+    rect_inner = (box_x+5, box_y+5, box_w-10, box_h-10)
+    pygame.draw.rect(screen, (0, 0, 0), rect_inner)
+    
+    str_start = box_y + 10
+
+    screen.blit(score_board, (box_w - (score_board.get_rect().width / 2), (str_start + (score_board.get_rect().height/len(score_dict)))))
+    winning_player = 1
+    winning_score = 0
+    winning_list = []
+
+    for player in score_dict:
+        if score_dict[player] > winning_score:
+            winning_player = player
+            winning_score = score_dict[player]
+        elif score_dict[player] == winning_score:
+            winning_list.append(player)
+    
+    if len(winning_list) < 1:
+        win_str = f"Player {winning_player} has won!"
+        win_board = font.render(f"{win_str}", False, (255, 255, 255))
+        screen.blit(win_board, (box_w - (win_board.get_rect().width / 2), (str_start + (win_board.get_rect().height/len(score_dict)))))
+    else:
+        for player in winning_list:
+            pass
+            #str_start += win_board.get_rect().height
 
 def new_ai(index):
     ai_list[index] = ai.Ai(ai_list[index].tank, game_objects_list, tanks_list, space, current_map)
@@ -310,6 +362,7 @@ def display_update():
     # Update the display of the game objects on the screen
     for obj in game_objects_list:
         obj.update_screen(screen)
+    win_conditions()
     # Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 

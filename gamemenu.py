@@ -24,16 +24,17 @@ space1 = pymunk.Space()
 
 # Map creator
 background = pygame.Surface(screen.get_size())
+background1 = pygame.Surface(screen.get_size())
+background2 = pygame.Surface(screen.get_size())
 
-def grass_background(current_map):
-    #print("hej")
+def grass_background(background, current_map):
     # Copy the grass tile all over the level area
     scl = pygame.transform.scale(images.grass, (PREVIEW_TILE_SIZE, PREVIEW_TILE_SIZE))
     for x in range(0, current_map.width):
         for y in range(0,  current_map.height):
             background.blit(scl,  (x*PREVIEW_TILE_SIZE, y*PREVIEW_TILE_SIZE))
 
-def create_boxes(current_map):
+def create_boxes(background, current_map):
     # -- Create the boxes
     for x in range(0, current_map.width):
         for y in range(0,  current_map.height):
@@ -46,13 +47,13 @@ def create_boxes(current_map):
                 background.blit(pygame.transform.scale(gameobjects.get_box_with_type(x, y, box_type, space1).sprite,
                 (PREVIEW_TILE_SIZE, PREVIEW_TILE_SIZE)), (x*PREVIEW_TILE_SIZE, y*PREVIEW_TILE_SIZE))
 
-def display_update(coordinates):
+def display_update(background, coordinates):
     #-- Update Display
     # Display the background on the screen
     screen.blit(background, coordinates)
     # Update the display of the game objects on the screen
-    for obj in game_objects_list:
-        obj.update_screen(screen)
+    #for obj in game_objects_list:
+    #    obj.update_screen(screen)
     # Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
@@ -85,45 +86,62 @@ def create_button(x, y, width, height, hovercolor, defaultcolor):
             return True
     else:
         pygame.draw.rect(screen, defaultcolor, (x, y, width, height))
+        return (x, y)
 
 def mappicker():
     screen.fill(navajowhite)
     mappick = font.render('Choose a map', False, black)
-    dust2 = smallerfont.render('Dust 2', False, black)
-    tilted_towers = smallerfont.render('Tilted Towers', False, black)
-    cobblestone = smallerfont.render('Dalaran Arena', False, black)
+    dust2_text = smallerfont.render('Dust 2', False, black)
+    tilted_towers_text = smallerfont.render('Tilted Towers', False, black)
+    cobblestone_text = smallerfont.render('Dalaran Arena', False, black)
     quitgame = smallerfont.render('Quit!', False, black)
 
     center = width / 2
 
-    grass_background(maps.choose_map("map1"))
-    create_boxes(maps.choose_map("map1"))
-    display_update((100, 100))
+    background.fill(navajowhite)
+    background1.fill(navajowhite)
+    background2.fill(navajowhite)
+    grass_background(background, maps.choose_map("map0"))
+    create_boxes(background, maps.choose_map("map0"))
+    display_update(background, (100, 250))
+
+    grass_background(background1, maps.choose_map("map1"))
+    create_boxes(background1, maps.choose_map("map1"))
+    display_update(background1, (250, 250))
+
+    grass_background(background2, maps.choose_map("map2"))
+    create_boxes(background2, maps.choose_map("map2"))
+    display_update(background2, (450, 250))
+
+    dust2_button = create_button(90, 400, 135, 35, slategrey, white)
+    
     running = True
     while running:
-        tilted_towers_button = create_button(100, 400, 140, 35, slategrey, white)
-        dust2_button = create_button(250, 400, 140, 35, slategrey, white)
-        cobblestone_button = create_button(400, 400, 140, 35, slategrey, white)
+        dust2_button = create_button(90, 400, 135, 35, slategrey, white)
+        tilted_towers_button = create_button(292.5, 400, 135, 35, slategrey, white)
+        cobblestone_button = create_button(450, 400, 150, 35, slategrey, white)
         quit_button = create_button(25, 670, 125, 26, slategrey, white)
 
         screen.blit(mappick, (center - (mappick.get_rect().width / 2), 100))
-        screen.blit(dust2, (103, 403))
-        screen.blit(tilted_towers, (253, 403))
-        screen.blit(cobblestone, (403, 403))
+        #screen.blit(dust2_text, (dust2_button[0] + 3, dust2_button[1] + 3))
+        screen.blit(dust2_text, (93, 403))
+        screen.blit(tilted_towers_text, (292.5 + 3, 403))
+        #screen.blit(tilted_towers_text, (tilted_towers_button[0], tilted_towers_button[1]))
+        screen.blit(cobblestone_text, (453, 403))
         screen.blit(quitgame, (65, 670))
-        if tilted_towers_button:
+        if dust2_button == True:
             current_map = maps.choose_map("map0") 
             running = False
             return current_map
-        if dust2_button:
+        if tilted_towers_button == True:
             current_map = maps.choose_map("map1") 
             running = False
             return current_map
-        if cobblestone_button:
+        if cobblestone_button == True:
             current_map = maps.choose_map("map2") 
             running = False
             return current_map
-        if quit_button:
+        if quit_button == True:
             pygame.quit()
             quit()
         for event in pygame.event.get():
@@ -156,13 +174,13 @@ def gameintro():
         screen.blit(multiplayertext, (37, 300))
         screen.blit(quitgame, (75, 350))
 
-        if singleplayer_button:
+        if singleplayer_button == True:
             gamemode = 1
             return gamemode
-        if multiplayer_button:
+        if multiplayer_button == True:
             gamemode = 2
             return gamemode
-        if quit_button:
+        if quit_button == True:
             pygame.quit()
             quit()
         for event in pygame.event.get():

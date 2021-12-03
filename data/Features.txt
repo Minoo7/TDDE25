@@ -1,0 +1,19 @@
+Weekly milestones: 5 poäng
+Features:
+
+Easy
+Counting score			(1pt)  ✓
+Sounds 			(1pt)  ✓
+Hot seat multiplayer		(1pt)  ✓
+Hit points			(1pt)  ✓
+Respawn protection		(1pt)  ✓ - with blinking
+Unfair Ai			(1pt)  ✓
+
+Medium:
+Read maps from a text file	(2pts) ✓
+Welcome screen			(2pts) ✓
+Score screen			(2pts) ✓
+Additional win condition	(3pts) ✓
+Explosion			(2pts) ✓
+
+Total points: (17pts)
