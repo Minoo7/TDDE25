@@ -52,6 +52,9 @@ rounds_played = 0
 parser = argparse.ArgumentParser()
 parser.add_argument('--hot-multiplayer', default=False, action='store_true') # Justera False till True för enklare testning
 parser.add_argument('--singleplayer', default=False, action='store_true')
+parser.add_argument('--time_condition', default=True, action='store_true')
+parser.add_argument('--score_condition', default=False, action='store_true')
+parser.add_argument('--rounds_condition', default=False, action='store_true')
 args = parser.parse_args()
 
 if (args.hot_multiplayer == False) and (args.singleplayer == False):
@@ -280,7 +283,8 @@ def physics_update(skip_update): #update
             if isinstance(obj, gameobjects.Tank):
                 obj.try_grab_flag(flag)
                 if obj.has_won():
-                    rounds_played = rounds_played + 1
+                    global rounds_played
+                    rounds_played += 1
                     obj.flag = None
                     obj.score += 1
                     score_dict[obj.player_number] = obj.score
@@ -294,21 +298,18 @@ def physics_update(skip_update): #update
         skip_update -= 1
 
 def win_conditions(obj = None):
-    if args.time_condition:
-        if pygame.time.get_ticks() >= 300000:
-            pygame.quit()
-    else:
-        if args.score_condition and obj.score == 5:
-            pygame.quit()
-        elif args.rounds_condition and rounds_played == 10:
-            pygame.quit()
+    if (args.time_condition and pygame.time.get_ticks() >= 15000) or \
+       (obj != None and args.score_condition and obj.score == 5) or \
+       (args.rounds_condition and rounds_played == 10):
+        winning_screen()
+        pygame.quit()
 
 def winning_screen():
     font = pygame.font.SysFont("Tahoma", 24)
 
     box_x = current_map.rect().size[0]//4
-    box_w = current_map.rect().size[0]//2
     box_y = current_map.rect().size[1]//4
+    box_w = current_map.rect().size[0]//2
     box_h = current_map.rect().size[1]//2
 
     
@@ -319,7 +320,6 @@ def winning_screen():
     
     str_start = box_y + 10
 
-    screen.blit(score_board, (box_w - (score_board.get_rect().width / 2), (str_start + (score_board.get_rect().height/len(score_dict)))))
     winning_player = 1
     winning_score = 0
     winning_list = []
@@ -330,15 +330,18 @@ def winning_screen():
             winning_score = score_dict[player]
         elif score_dict[player] == winning_score:
             winning_list.append(player)
-    
-    if len(winning_list) < 1:
-        win_str = f"Player {winning_player} has won!"
+    if winning_player not in winning_list:
+        winning_list.append(winning_player)
+
+    for player in winning_list:
+        win_str = f"Player {player} has won!"
         win_board = font.render(f"{win_str}", False, (255, 255, 255))
-        screen.blit(win_board, (box_w - (win_board.get_rect().width / 2), (str_start + (win_board.get_rect().height/len(score_dict)))))
-    else:
-        for player in winning_list:
-            pass
-            #str_start += win_board.get_rect().height
+        screen.blit(win_board, (box_w - (win_board.get_rect().width / 2), (str_start + (win_board.get_rect().height/len(winning_list)))))
+        str_start += win_board.get_rect().height
+
+    pygame.display.flip()
+    pygame.time.delay(10000)
+    
 
 def new_ai(index):
     ai_list[index] = ai.Ai(ai_list[index].tank, game_objects_list, tanks_list, space, current_map)
