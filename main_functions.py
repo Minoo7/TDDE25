@@ -52,17 +52,27 @@ rounds_played = 0
 parser = argparse.ArgumentParser()
 parser.add_argument('--hot-multiplayer', default=False, action='store_true') # Justera False till True för enklare testning
 parser.add_argument('--singleplayer', default=False, action='store_true')
-parser.add_argument('--time_condition', default=True, action='store_true')
+parser.add_argument('--time_condition', default=False, action='store_true') # Ändrade till False för det borde funka, har inte pygame på denna dator och pip funkar inte // MERVAN
 parser.add_argument('--score_condition', default=False, action='store_true')
 parser.add_argument('--rounds_condition', default=False, action='store_true')
 args = parser.parse_args()
 
 if (args.hot_multiplayer == False) and (args.singleplayer == False):
-    gamemode = gamemenu.gameintro()
-    if gamemode == 1:
+    amount_players = gamemenu.gameintro()
+    if amount_players == 1:
         args.singleplayer = True
-    if gamemode == 2:
+    if amount_players == 2:
         args.hot_multiplayer = True
+
+if (args.time_condition == False) and (args.score_condition == False) and (args.rounds_condition == False):
+    gamemode = gamemenu.gamemode()
+    if gamemode == 1:
+        args.time_condition == True
+    if gamemode == 2:
+        args.score_condition == True
+    if gamemode == 3:
+        args.rounds_condition == True
+        
 
 # Define the current level
 current_map         = gamemenu.mappicker()
@@ -102,7 +112,7 @@ background = pygame.Surface(screen.get_size())
 def score_board():
     font = pygame.font.SysFont("Tahoma", 24)
 
-    box_x = current_map.rect().size[0]//4
+    box_x = current_map.rect().size[0]//4 # Prova ändra denna för att få recten att bli bredare
     box_w = current_map.rect().size[0]//2
     box_y = current_map.rect().size[1]//4
     box_h = current_map.rect().size[1]//2

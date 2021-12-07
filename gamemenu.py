@@ -88,6 +88,48 @@ def create_button(x, y, width, height, hovercolor, defaultcolor):
         pygame.draw.rect(screen, defaultcolor, (x, y, width, height))
         return (x, y)
 
+def gamemode():
+    screen.fill(navajowhite)
+    choose_mode_text = font.render('Choose a gamemode', False, black)
+    time_condition_text = font.render('Time limit', False, black)
+    score_condition_text = font.render('Score limit', False, black)
+    rounds_condition_text = font.render('Rounds limit', False, black)
+    quitgame = smallerfont.render('Quit!', False, black)
+
+    center = width / 2
+
+    btns_pos = [(90, (90 + (150/2))), (285, (285 + (150/2))), (480, (480 + (150/2)))]
+
+    running = True
+    while running:
+        time_condition_button = create_button(btns_pos[0][0], 400, 150, 35, slategrey, white)
+        score_condition_button = create_button(btns_pos[1][0], 400, 150, 35, slategrey, white)
+        rounds_button = create_button(btns_pos[2][0], 400, 150, 35, slategrey, white)
+        quit_button = create_button(25, 670, 125, 26, slategrey, white)
+
+        screen.blit(choose_mode_text, (center - (choose_mode_text.get_rect().width / 2), 100))
+
+        screen.blit(time_condition_text, (btns_pos[0][1] - (time_condition_text.get_rect().width / 2), 405))
+        screen.blit(score_condition_text, (btns_pos[1][1] - (score_condition_text.get_rect().width / 2), 405))
+        screen.blit(rounds_condition_text, (btns_pos[2][1] - (rounds_condition_text.get_rect().width / 2), 405))
+        screen.blit(quitgame, (65, 670))
+
+        if time_condition_button == True:
+            gamemode = 1 
+            running = False
+            return gamemode
+        if score_condition_button == True:
+            gamemode = 2
+            running = False
+            return gamemode
+        if rounds_button == True:
+            gamemode = 3
+            running = False
+            return gamemode
+        if quit_button == True:
+            pygame.quit()
+            quit()
+
 def mappicker():
     screen.fill(navajowhite)
     mappick = font.render('Choose a map', False, black)
@@ -106,15 +148,17 @@ def mappicker():
 
     grass_background(background, maps.choose_map("map0"))
     create_boxes(background, maps.choose_map("map0"))
-    display_update(background, (btns_pos[0][1] - (90 / 2), 400 - 25 - 90))#90
+    display_update(background, (btns_pos[0][1] - (90 / 2), 400 - 25 - 90)) #90
 
     grass_background(background1, maps.choose_map("map1"))
     create_boxes(background1, maps.choose_map("map1"))
-    display_update(background1, (btns_pos[1][1] - (150 / 2), 400 - 25 - 110))#110
+    display_update(background1, (btns_pos[1][1] - (150 / 2), 400 - 25 - 110)) #110
 
     grass_background(background2, maps.choose_map("map2"))
     create_boxes(background2, maps.choose_map("map2"))
-    display_update(background2, (btns_pos[2][1] - (100 / 2), 400 - 25 - 50))#50
+    display_update(background2, (btns_pos[2][1] - (100 / 2), 400 - 25 - 50)) #50
+
+    
     
     running = True
     while running:
@@ -124,11 +168,12 @@ def mappicker():
         quit_button = create_button(25, 670, 125, 26, slategrey, white)
 
         screen.blit(mappick, (center - (mappick.get_rect().width / 2), 100))
-        #screen.blit(dust2_text, (dust2_button[0] + 3, dust2_button[1] + 3))
+
         screen.blit(dust2_text, (btns_pos[0][1] - (dust2_text.get_rect().width / 2), 405))
         screen.blit(tilted_towers_text, (btns_pos[1][1] - (tilted_towers_text.get_rect().width / 2), 405))
         screen.blit(cobblestone_text, (btns_pos[2][1] - (cobblestone_text.get_rect().width / 2), 405))
         screen.blit(quitgame, (65, 670))
+
         if dust2_button == True:
             current_map = maps.choose_map("map0") 
             running = False
@@ -151,7 +196,7 @@ def mappicker():
         pygame.display.update()
 
 
-        clock.tick(10)
+        clock.tick(50)
 
 def gameintro():
     screen.fill(navajowhite)
@@ -189,6 +234,6 @@ def gameintro():
                 quit()
         pygame.display.update()
 
-        clock.tick(10)
+        clock.tick(50)
 
 
