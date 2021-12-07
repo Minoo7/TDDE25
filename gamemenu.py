@@ -129,6 +129,11 @@ def gamemode():
         if quit_button == True:
             pygame.quit()
             quit()
+        pygame.display.update()
+
+
+        clock.tick(50)
+
 
 def mappicker():
     screen.fill(navajowhite)
