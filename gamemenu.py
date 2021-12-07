@@ -71,13 +71,15 @@ navajowhite = (255, 222, 173)
 def create_button(x, y, width, height, hovercolor, defaultcolor):
     """ Creates a button with ability to hover and press """
     # Gets mouse x and y pos
-    mouse = pygame.mouse.get_pos()
+    mouse = pygame.mouse
     # Checks if a mouse gets pressed with 3 buttons instead of 5
     click = pygame.mouse.get_pressed(3)
+    #pygame.MOUSEBUTTONDOWN
     # Draws a button and checks if we interact with the button
-    if x + width > mouse[0] > x and y + height > mouse[1] > y:
+    rect = pygame.Rect(x, y, width, height)
+    if rect.collidepoint(mouse.get_pos()):
         pygame.draw.rect(screen, hovercolor, (x, y, width, height))
-        if click[0] == 1:
+        if click[0]:
             return True
     else:
         pygame.draw.rect(screen, defaultcolor, (x, y, width, height))
@@ -90,49 +92,53 @@ def gamemode():
 
     #-- Render texts 
     choose_mode_text = font.render('Choose a gamemode', False, black)
-    time_condition_text = font.render('Time limit', False, black)
-    score_condition_text = font.render('Score limit', False, black)
-    rounds_condition_text = font.render('Rounds limit', False, black)
+    time_condition_text = smallerfont.render('Time limit', False, black)
+    score_condition_text = smallerfont.render('Score limit', False, black)
+    rounds_condition_text = smallerfont.render('Rounds limit', False, black)
     quitgame = smallerfont.render('Quit!', False, black)
 
     #-- Center of screen
     center = width / 2
 
     #-- Position of buttons
+    #btns_pos = [(400, (400 + (150/2))), (200, (200 + (150/2))), (600, (600 + (150/2)))]
     btns_pos = [(90, (90 + (150/2))), (285, (285 + (150/2))), (480, (480 + (150/2)))]
 
-    running = True
-    while running:
+    run = True
+    while run:
         #-- Creates buttons
-        time_condition_button = create_button(btns_pos[0][0], 400, 150, 35, slategrey, white)
-        score_condition_button = create_button(btns_pos[1][0], 400, 150, 35, slategrey, white)
-        rounds_button = create_button(btns_pos[2][0], 400, 150, 35, slategrey, white)
+        time_condition_button = create_button(btns_pos[0][0], 340, 150, 35, slategrey, white)
+        score_condition_button = create_button(btns_pos[1][0], 340, 150, 35, slategrey, white)
+        rounds_button = create_button(btns_pos[2][0], 340, 150, 35, slategrey, white)
         quit_button = create_button(25, 670, 125, 26, slategrey, white)
 
         #-- Shows text on buttons
         screen.blit(choose_mode_text, (center - (choose_mode_text.get_rect().width / 2), 100))
 
-        screen.blit(time_condition_text, (btns_pos[0][1] - (time_condition_text.get_rect().width / 2), 405))
-        screen.blit(score_condition_text, (btns_pos[1][1] - (score_condition_text.get_rect().width / 2), 405))
-        screen.blit(rounds_condition_text, (btns_pos[2][1] - (rounds_condition_text.get_rect().width / 2), 405))
+        screen.blit(time_condition_text, (btns_pos[0][1] - (time_condition_text.get_rect().width / 2), 345))
+        screen.blit(score_condition_text, (btns_pos[1][1] - (score_condition_text.get_rect().width / 2), 345))
+        screen.blit(rounds_condition_text, (btns_pos[2][1] - (rounds_condition_text.get_rect().width / 2), 345))
         screen.blit(quitgame, (65, 670))
 
         #-- If a button gets clicked
         if time_condition_button == True:
-            gamemode = 1 
-            running = False
-            return gamemode
+            run = False
+            return "time"
         if score_condition_button == True:
-            gamemode = 2
-            running = False
-            return gamemode
+            run = False
+            return "score"
         if rounds_button == True:
-            gamemode = 3
-            running = False
-            return gamemode
+            run = False
+            return "rounds"
         if quit_button == True:
             pygame.quit()
             quit()
+        
+        for event in pygame.event.get():
+            
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                pygame.quit()
+                quit()
 
         #-- Updates the screen
         pygame.display.update()
@@ -247,11 +253,9 @@ def gameintro():
 
         #-- If a buttons gets clicked
         if singleplayer_button == True:
-            gamemode = 1
-            return gamemode
+            return 1
         if multiplayer_button == True:
-            gamemode = 2
-            return gamemode
+            return 2
         if quit_button == True:
             pygame.quit()
             quit()

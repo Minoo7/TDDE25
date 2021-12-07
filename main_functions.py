@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 from pygame.color import *
 import pymunk
+import time
 # import gamemenu Under konstruktion
 
 # https://gitlab.liu.se/tdde25/ctf/-/wikis/Tutorial
@@ -52,30 +53,39 @@ rounds_played = 0
 parser = argparse.ArgumentParser()
 parser.add_argument('--hot-multiplayer', default=False, action='store_true') # Justera False till True för enklare testning
 parser.add_argument('--singleplayer', default=False, action='store_true')
-parser.add_argument('--time_condition', default=False, action='store_true') # Ändrade till False för det borde funka, har inte pygame på denna dator och pip funkar inte // MERVAN
-parser.add_argument('--score_condition', default=False, action='store_true')
-parser.add_argument('--rounds_condition', default=False, action='store_true')
+parser.add_argument('--time-condition', default=False, action='store_true') # Ändrade till False för det borde funka, har inte pygame på denna dator och pip funkar inte // MERVAN
+parser.add_argument('--score-condition', default=False, action='store_true')
+parser.add_argument('--rounds-condition', default=False, action='store_true')
 args = parser.parse_args()
 
-if (args.hot_multiplayer == False) and (args.singleplayer == False):
+if not any([args.hot_multiplayer, args.singleplayer]):
     amount_players = gamemenu.gameintro()
     if amount_players == 1:
         args.singleplayer = True
     if amount_players == 2:
         args.hot_multiplayer = True
 
-if (args.time_condition == False) and (args.score_condition == False) and (args.rounds_condition == False):
+# Choose gamemode
+if not any([args.time_condition, args.score_condition, args.rounds_condition]):
+#if True:
     gamemode = gamemenu.gamemode()
-    if gamemode == 1:
-        args.time_condition == True
-    if gamemode == 2:
-        args.score_condition == True
-    if gamemode == 3:
-        args.rounds_condition == True
-        
-
+    print(gamemode)
+    if gamemode == "time":
+        args.time_condition = True
+        print("yooo")
+    elif gamemode == "score":
+        args.score_condition = True
+        print("2")
+    elif gamemode == "rounds":
+        args.rounds_condition = True
+        print("3")
+    #current_map         = gamemenu.mappicker()
 # Define the current level
-current_map         = gamemenu.mappicker()
+
+#current_map = maps.choose_map("map0")
+current_map = gamemenu.mappicker()
+
+
 
 # Initialize world border
 
@@ -101,7 +111,7 @@ ai_list = []
 
 # -- Resize the screen to a fullscreen
 
-screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((current_map.rect().size))
 
 # screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN) # Under konstruktion
 # gamemenu.gameintro() # Under konstruktion
@@ -134,6 +144,7 @@ def score_board():
     
     pygame.display.flip()
     pygame.time.delay(3000)
+
 
 def grass_background():
     
@@ -268,8 +279,10 @@ def event_handler(running):
         # Spelarnas kontroller
         if event.type == KEYDOWN:
             if args.singleplayer or args.hot_multiplayer:
-                #if event.key == K_x: # Test key
-                #    print(ai_list[1].pt)
+                if event.key == K_x: # Test key
+                    print(args.time_condition)
+                    print(args.score_condition)
+                    print(args.rounds_condition)
                 if event.key == K_SPACE:
                     tanks_list[0].shoot(game_objects_list, pygame.time.get_ticks(), space)
                 elif event.key in key_action:
@@ -308,11 +321,9 @@ def physics_update(skip_update): #update
         skip_update -= 1
 
 def win_conditions(obj = None):
-    if (args.time_condition and pygame.time.get_ticks() >= 15000) or \
-       (obj != None and args.score_condition and obj.score == 5) or \
+    if (obj != None and args.score_condition and obj.score == 5) or \
        (args.rounds_condition and rounds_played == 10):
         winning_screen()
-        pygame.quit()
 
 def winning_screen():
     font = pygame.font.SysFont("Tahoma", 24)
@@ -338,6 +349,7 @@ def winning_screen():
         if score_dict[player] > winning_score:
             winning_player = player
             winning_score = score_dict[player]
+            winning_list = []
         elif score_dict[player] == winning_score:
             winning_list.append(player)
     if winning_player not in winning_list:
@@ -350,8 +362,22 @@ def winning_screen():
         str_start += win_board.get_rect().height
 
     pygame.display.flip()
-    pygame.time.delay(10000)
-    
+    pygame.time.delay(5000)
+    exit()
+
+
+def show_clock():
+    font = pygame.font.SysFont("Tahoma", 24)
+    time = (300000 - (pygame.time.get_ticks() - game_start_time)) // 1000
+    mins = time // 60
+    secs = time % 60
+    if secs < 10:
+        secs = f"0{secs}"
+    disp_clock = font.render(f"0{mins} : {secs}", False, (255, 255, 255))
+    screen.blit(disp_clock, (current_map.rect().size[0] / 2 - (disp_clock.get_rect().width / 2), -4))
+    if mins <= 0 and secs <= 0:
+        winning_screen()
+
 
 def new_ai(index):
     ai_list[index] = ai.Ai(ai_list[index].tank, game_objects_list, tanks_list, space, current_map)
@@ -375,14 +401,17 @@ def display_update():
     # Update the display of the game objects on the screen
     for obj in game_objects_list:
         obj.update_screen(screen)
-    win_conditions()
+    if args.time_condition:
+        show_clock()
+        win_conditions()
     # Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
 #def __init__():
 def __init__():
     #-- Create background, boxes and tanks
-
+    global game_start_time
+    game_start_time = pygame.time.get_ticks()
     grass_background()
     create_boxes()
     create_tanks()
