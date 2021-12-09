@@ -47,6 +47,7 @@ FRAMERATE = 50
 arb = pymunk.Arbiter
 score_dict = {}
 rounds_played = 0
+score_time_comp = 0
 
 # Define flags from commandline deciding between multiplayer and singleplayer
 
@@ -69,17 +70,14 @@ if not any([args.hot_multiplayer, args.singleplayer]):
 if not any([args.time_condition, args.score_condition, args.rounds_condition]):
 #if True:
     gamemode = gamemenu.gamemode()
-    print(gamemode)
     if gamemode == "time":
         args.time_condition = True
-        print("yooo")
     elif gamemode == "score":
         args.score_condition = True
-        print("2")
     elif gamemode == "rounds":
         args.rounds_condition = True
-        print("3")
-    #current_map         = gamemenu.mappicker()
+
+
 # Define the current level
 
 #current_map = maps.choose_map("map0")
@@ -141,7 +139,8 @@ def score_board():
         score_board = font.render(f"{score_str}", False, (255, 255, 255))
         screen.blit(score_board, (box_w - (score_board.get_rect().width / 2), (str_start + (score_board.get_rect().height/len(score_dict)))))
         str_start += score_board.get_rect().height
-    
+    global score_time_comp
+    score_time_comp += 3
     pygame.display.flip()
     pygame.time.delay(3000)
 
@@ -368,7 +367,7 @@ def winning_screen():
 
 def show_clock():
     font = pygame.font.SysFont("Tahoma", 24)
-    time = (300000 - (pygame.time.get_ticks() - game_start_time)) // 1000
+    time = (300000 - (pygame.time.get_ticks() - game_start_time)) // 1000 + score_time_comp
     mins = time // 60
     secs = time % 60
     if secs < 10:
