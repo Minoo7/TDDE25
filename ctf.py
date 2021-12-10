@@ -1,6 +1,5 @@
 import main_functions
-import gamemenu
-import maps
+
 # Starta spelet med python ctf.py --singleplayer
 # eller python ctf.py --hot-multiplayer
 

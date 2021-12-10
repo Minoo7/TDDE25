@@ -1,10 +1,14 @@
 ---- A detailed description ----
-Starta programmet
-För att starta programmet måste du skapa en tom mapp med valfritt namn. Klona sedan repot från gitlab (länk: https://gitlab.liu.se/tdde25-2021/tdde25-2021-projekt-sg5-u-06). 
-Välj en plats där du vet var den hamnar. Sedan startar du terminalen för att sedan navigera dig till rätt filplats genom att skriva cd /home/[LIU-ID]/[Vald plats för mappen (ex. Desktop]/[Mappens namn]. 
-När du sedan trycker enter kan du dubbelkolla att du hamnade rätt genom att skriva ls. Ser du filen ctf.py har du hamnat rätt. 
-Det du ska göra nu är att avgöra om du vill spela singleplayer eller multiplayer. 
-Vill du spela singleplayer skriver du: ”python3 ctf.py  --singleplayer”, vill du istället spela multiplayer skriver du istället ”python3 ctf.py --hot-multiplayer”.
+-- Starta programmet --
+
+För att starta programmet måste du skapa en tom mapp med valfritt namn. 
+Klona sedan repot från gitlab (länk: https://gitlab.liu.se/tdde25-2021/tdde25-2021-projekt-sg5-u-06). 
+Välj en plats där du vet var den hamnar. 
+Sedan startar du terminalen för att sedan navigera dig till rätt filplats genom att skriva cd /home/[LIU-ID]/[Vald plats för mappen (ex. Desktop]/[Mappens namn]. 
+När du sedan trycker enter kan du dubbelkolla att du hamnade rätt genom att skriva ls. 
+Ser du filen ctf.py har du hamnat rätt. Du kan starta genom att skriva python3 ctf.py eller avgöra om du vill spela singleplayer eller multiplayer. 
+Vill du spela singleplayer skriver du: ”python3 ctf.py  --singleplayer”, 
+vill du istället spela lokal multiplayer skriver du istället ”python3 ctf.py --hot-multiplayer”.
 
 Funktioner
 
@@ -21,8 +25,22 @@ Ljud – Det finns bakgrundsmusik, när en pansarvagn skjuter och när den blir 
 Enkel- och flerspelsläge – Det finns en möjlighet att välja om man ska spela en eller två spelare.
 Återupplivsskydd – När du dör lever du upp igen i din bas. Där blinkar du och medan du blinkar kan ingen döda dig. Detta förhindrar andra från att låsa fast dig vid din bas.
 Explosion – skjuter du något och det träffar syns en explosion.
-
-
-
+Poängräkning – när du vinner en runda skriver programmet ut hur mycket poäng varje spelare har både på skärmen och i konsolen
+Liv – spelare och lådor kan träffas mer än en gång om de finns behov för det
+Läsa in kartor från fil – Spelet läser in spelet från en textfil
+Välkomst skärm – Spelet går att starta direkt från ctf.py där du möts av en skärm där du kan välja inställningar för spelet
+Scoreboard – Poängräkningen visar även upp på skärmen när någon får ett poäng
+Fler sätt att vinna – det går att välja att vinna genom: tid, poäng och antal rundor. Det finns även tidnedräkning så du ser hur mycket tid som finns kvar
 
 ---- Functionality ----
+
+Ctf.py – ctf är hur du startar spelet, den skapar while true loopen som kallar till main_functions.py där alla funktioner existerar
+Ai.py – Ai.py är filen som avgör vad varje AI ska göra, den kan välja mellan att köra och skjuta
+Exercise1.py – Har inget med projektet att göra utan är en övning för klassprogrammering
+Gamemenu.py – Gamemenu är filen för startskärmen här görs inställningar för olika gamemodes och winning conditions
+Gameobjects.py – Här finns bland annat spelmotorn och fysikobjekt
+Images.py – images hämtar bilder och lägger ut de på kartan. Här finns baser, flaggan, olika lådor och pansarvagnar. Hämtas från /data/
+Main_functions.py – Här finns spelet i sig, den hämtar in allt och kör. Den tar in kartan, lägger ut bilder på kartan, sköter musik, kör baserat på användarinställningar, initierar spelet, kör världsgränser, scoreboard, skapar pansarvagnar och AI:s. Den återställer spelet om någon vinner, skapar skotten, tar hand om inmatningar av tangenter, uppdaterar spelmotorn, en vinnarskärm och visar klockan
+Maps.py – Tar in kartor och läser in den från textfiler som hämtas från /data/maps/
+Sounds.py – Ljudhanterare som kör musik baserat på vad som händer i spelet. Den hämtar från /data/sounds/
+Testing.py – Testfil där vi testar nya grejer att lägga till i spelet
