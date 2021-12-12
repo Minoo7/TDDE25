@@ -327,18 +327,15 @@ def win_conditions(obj = None):
 def winning_screen():
     font = pygame.font.SysFont("Tahoma", 24)
 
-    box_x = current_map.rect().size[0]//4
-    box_y = current_map.rect().size[1]//4
-    box_w = current_map.rect().size[0]//2
-    box_h = current_map.rect().size[1]//2
+    box_x = current_map.rect().size[0]/4 - 5
+    box_y = current_map.rect().size[1]/4
+    box_w = current_map.rect().size[0]/2 + 10
+    box_h = current_map.rect().size[1]/2
 
-    
     rect_outer = (box_x, box_y, box_w, box_h)
     pygame.draw.rect(screen, (255,255,255), rect_outer)
     rect_inner = (box_x+5, box_y+5, box_w-10, box_h-10)
     pygame.draw.rect(screen, (0, 0, 0), rect_inner)
-    
-    str_start = box_y + 10
 
     winning_player = 1
     winning_score = 0
@@ -354,11 +351,12 @@ def winning_screen():
     if winning_player not in winning_list:
         winning_list.append(winning_player)
 
-    for player in winning_list:
-        win_str = f"Player {player} has won!"
-        win_board = font.render(f"{win_str}", False, (255, 255, 255))
-        screen.blit(win_board, (box_w - (win_board.get_rect().width / 2), (str_start + (win_board.get_rect().height/len(winning_list)))))
-        str_start += win_board.get_rect().height
+    if len(winning_list) == 1:
+        win_str = f"Player {winning_player} has won!"
+    else:
+        win_str = "It´s a draw!"
+    win_board = font.render(f"{win_str}", False, (255, 255, 255))
+    screen.blit(win_board, ((box_w - 10 - win_board.get_rect().width / 2), (box_h - win_board.get_rect().height / 2)))
 
     pygame.display.flip()
     pygame.time.delay(5000)
@@ -370,12 +368,12 @@ def show_clock():
     time = (300000 - (pygame.time.get_ticks() - game_start_time)) // 1000 + score_time_comp
     mins = time // 60
     secs = time % 60
+    if mins <= 0 and secs <= 0:
+        winning_screen()
     if secs < 10:
         secs = f"0{secs}"
     disp_clock = font.render(f"0{mins} : {secs}", False, (255, 255, 255))
     screen.blit(disp_clock, (current_map.rect().size[0] / 2 - (disp_clock.get_rect().width / 2), -4))
-    if mins <= 0 and secs <= 0:
-        winning_screen()
 
 
 def new_ai(index):
