@@ -19,27 +19,27 @@ Flagga – I mitten av kartan skapas en flagga som går att ta upp, dör man med
 Spelmål – Målet med spelet är att vinna genom att ta flaggan i mitten till sin egen bas. Den som gör det får ett poäng. Du kan förhindra andra från att få poäng genom att skjuta dem.
 Kontroller – Det finns totalt 5 kontroller för varje spelare. Åk framåt, åk bakåt, sväng höger, sväng vänster och skjut.
 Världsgränser – Dynamiska världsgränser som förhindrar spelare från att åka ut ur kartan.
-Kollisionshantering – Det finns några kollisions hanterare; du kan skjuta en annan spelare eller en trälåda, du köra på en annan spelare och då puttar du spelaren. Det finns även en kollisionshanterare som ser till att du inte kan putta en stenlåda.
+Kollisionshantering – Det finns några kollisions hanterare; du kan skjuta en annan spelare eller en trälåda, du kan köra på en annan spelare och då puttar du spelaren. Det finns även en kollisionshanterare som ser till att du inte kan putta en stenlåda.
 AI – Det finns en simpel AI som utnyttjar Breadth First Search för att avgöra sitt nästa drag.
 Ljud – Det finns bakgrundsmusik, när en pansarvagn skjuter och när den blir träffad. Det finns även ett ljud när man tar flaggan och när man får ett poäng.
 Enkel- och flerspelsläge – Det finns en möjlighet att välja om man ska spela en eller två spelare.
-Återupplivsskydd – När du dör lever du upp igen i din bas. Där blinkar du och medan du blinkar kan ingen döda dig. Detta förhindrar andra från att låsa fast dig vid din bas.
-Explosion – skjuter du något och det träffar syns en explosion.
+Återupplivsskydd – När du dör återupplivas du i din bas. Där blinkar du och medan du blinkar kan ingen döda dig. Detta förhindrar andra från att låsa fast dig vid din bas.
+Explosion – skjuter du något och det förstörs så syns en explosion.
 Poängräkning – när du vinner en runda skriver programmet ut hur mycket poäng varje spelare har både på skärmen och i konsolen
-Liv – spelare och lådor kan träffas mer än en gång om de finns behov för det
+Liv – spelare och lådor behöver träffas 2 gånger för att förstöras
 Läsa in kartor från fil – Spelet läser in spelet från en textfil
 Välkomst skärm – Spelet går att starta direkt från ctf.py där du möts av en skärm där du kan välja inställningar för spelet
-Scoreboard – Poängräkningen visar även upp på skärmen när någon får ett poäng
-Fler sätt att vinna – det går att välja att vinna genom: tid, poäng och antal rundor. Det finns även tidnedräkning så du ser hur mycket tid som finns kvar
+Scoreboard – Poängräkningen visas på skärmen när någon får ett poäng
+Fler sätt att vinna – det går att välja att vinna genom: tid, poäng och antal rundor. Det finns även tidnedräkning så du ser hur mycket tid som finns kvar om du väljer att vinna på tid
 
 ---- Functionality ----
 
-Ctf.py – ctf är hur du startar spelet, den skapar while true loopen som kallar till main_functions.py där alla funktioner existerar
+Ctf.py – ctf är hur du startar spelet, den skapar while running loopen som kallar till main_functions.py där alla funktioner existerar
 Ai.py – Ai.py är filen som avgör vad varje AI ska göra, den kan välja mellan att köra och skjuta
 Exercise1.py – Har inget med projektet att göra utan är en övning för klassprogrammering
-Gamemenu.py – Gamemenu är filen för startskärmen här görs inställningar för olika gamemodes och winning conditions
+Gamemenu.py – Gamemenu är filen för startskärmen. Här görs inställningar för olika gamemodes och winning conditions
 Gameobjects.py – Här finns bland annat spelmotorn och fysikobjekt
-Images.py – images hämtar bilder och lägger ut de på kartan. Här finns baser, flaggan, olika lådor och pansarvagnar. Hämtas från /data/
+Images.py – images hämtar bilder och lägger ut dom på kartan. Här finns baser, flaggan, olika lådor och pansarvagnar. Hämtas från /data/
 Main_functions.py – Här finns spelet i sig, den hämtar in allt och kör. Den tar in kartan, lägger ut bilder på kartan, sköter musik, kör baserat på användarinställningar, initierar spelet, kör världsgränser, scoreboard, skapar pansarvagnar och AI:s. Den återställer spelet om någon vinner, skapar skotten, tar hand om inmatningar av tangenter, uppdaterar spelmotorn, en vinnarskärm och visar klockan
 Maps.py – Tar in kartor och läser in den från textfiler som hämtas från /data/maps/
 Sounds.py – Ljudhanterare som kör musik baserat på vad som händer i spelet. Den hämtar från /data/sounds/
