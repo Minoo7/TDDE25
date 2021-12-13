@@ -1,45 +1,44 @@
+"""File for ai class and functions"""
 import math
+from collections import deque
 import pymunk
 from pymunk import Vec2d
-from pymunk import space
-from pymunk.query_info import SegmentQueryInfo
-from pymunk.shapes import Shape
+#from pymunk.query_info import SegmentQueryInfo #pylint: disable=unused-import
+#from pymunk.shapes import Shape
 import gameobjects
-from collections import defaultdict, deque
-#import copy
+
+#pylint: disable= missing-function-docstring, invalid-name, no-self-use
 
 # NOTE: use only 'map0' during development!
 
 MIN_ANGLE_DIF = math.radians(3) # 3 degrees, a bit more than we can turn each tick
 
-
-
 def angle_between_vectors(vec1, vec2):
     """ Since Vec2d operates in a cartesian coordinate space we have to
         convert the resulting vector to get the correct angle for our space.
     """
-    vec = vec1 - vec2 
+    vec = vec1 - vec2
     vec = vec.perpendicular()
     return vec.angle
 
-def periodic_difference_of_angles(angle1, angle2): 
+def periodic_difference_of_angles(angle1, angle2):
     return  (angle1% (2*math.pi)) - (angle2% (2*math.pi))
 
 
 class Ai:
-    """ A simple ai that finds the shortest path to the target using 
+    """ A simple ai that finds the shortest path to the target using
     a breadth first search. Also capable of shooting other tanks and or wooden
     boxes. """
 
-    def __init__(self, tank,  game_objects_list, tanks_list, space, nodeentmap):
+    def __init__(self, tank,  game_objects_list, tanks_list, space, nodeentmap): #pylint: disable=too-many-arguments
         self.tank               = tank
         self.game_objects_list  = game_objects_list
         self.tanks_list         = tanks_list
         self.space              = space
         self.nodeentmap         = nodeentmap
         self.flag = None
-        self.MAX_X = nodeentmap.width - 1 
-        self.MAX_Y = nodeentmap.height - 1
+        self.max_x = nodeentmap.width - 1
+        self.max_y = nodeentmap.height - 1
 
         self.path = deque()
         self.move_cycle = self.move_cycle_gen()
@@ -48,15 +47,12 @@ class Ai:
         self.angle = 1
         self.pos = 0
         self.prev = 0
-
         self.metal = False
 
-        self.pt = []
-    
     def ray_cast(self):
-
+        """Function for detecting ray cast for ai shoot function"""
         tank_pos = self.tank.body.position
-        map = self.nodeentmap
+        curr_map = self.nodeentmap
         angle = self.tank.body.angle + math.pi/2
 
         #Ray start
@@ -69,8 +65,8 @@ class Ai:
         ray_start = (ray_x_start, ray_y_start)
 
         #Ray end
-        x_end = map.width * math.cos(angle)
-        y_end = map.height * math.sin(angle)
+        x_end = curr_map.width * math.cos(angle)
+        y_end = curr_map.height * math.sin(angle)
 
         ray_x_end = tank_pos[0] + x_end
         ray_y_end = tank_pos[1] + y_end
@@ -85,18 +81,16 @@ class Ai:
 
     def maybe_shoot(self, lst, time, space):
         """ Makes a raycast query in front of the tank. If another tank
-            or a wooden box is found, then we shoot. 
+            or a wooden box is found, then we shoot.
         """
-
         res = self.ray_cast()
-    
         if hasattr(res, "shape"):
             col_type = res.shape.collision_type
             if col_type == 1 or \
             (col_type == 3 and res.shape.parent.destructable):
                 self.tank.shoot(lst, time, space)
-        
-    def find_shortest_path(self, metal = None):
+
+    def find_shortest_path(self):
         """ A simple Breadth First Search using integer coordinates as our nodes.
             Edges are calculated as we go, using an external function.
         """
@@ -118,7 +112,8 @@ class Ai:
             for neighbour in self.get_tile_neighbors(node, self.metal):
                 if not neighbour.int_tuple in visited:
                     queue.append(neighbour)
-                    path[neighbour.int_tuple] = path[node.int_tuple] + [neighbour] # (path to neighbour) = (path to previous pos) + (neighbour pos) .copy()?
+                    # (path to neighbour) = (path to previous pos) + (neighbour pos)
+                    path[neighbour.int_tuple] = path[node.int_tuple] + [neighbour]
 
             visited.add(node.int_tuple)
         if not shortest_path:
@@ -138,12 +133,11 @@ class Ai:
             self.tank.turn_left()
         else:
             self.tank.turn_right()
-        
+
     def update_angle(self, coord):
         self.angle = periodic_difference_of_angles(self.tank.body.angle,
         angle_between_vectors(self.tank.body.position, coord + Vec2d(0.5, 0.5)))
 
-    
     def correct_angle(self):
         if abs(self.angle) < MIN_ANGLE_DIF:
             self.tank.stop_turning()
@@ -155,15 +149,14 @@ class Ai:
         self.update_pos(next_coord)
         if self.pos > self.prev:
             self.update_grid_pos()
-            #self.tank.stop_moving()
             self.prev = self.pos + 1
             return True
         self.prev = self.pos
         return False
-    
+
     def update_pos(self, next_coord):
         self.pos = self.tank.body.position.get_distance(next_coord + Vec2d(0.5, 0.5))
-  
+
     def move_cycle_gen(self):
         """ A generator that iteratively goes through all the required steps
             to move to our goal.
@@ -189,16 +182,14 @@ class Ai:
     def decide(self, lst, time, space):
         """ Main decision function that gets called on every tick of the game. """
         self.maybe_shoot(lst, time, space)
-        #if self.move_cycle:
-        if next(self.move_cycle, False) == False:
-            ##print("is false")
+        if next(self.move_cycle, False) is False:
             pass
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
             return the position of our home base.
         """
-        if self.tank.flag != None:
+        if self.tank.flag is not None:
             x, y = self.tank.start_position
         else:
             self.get_flag() # Ensure that we have initialized it.
@@ -209,7 +200,7 @@ class Ai:
         """ This has to be called to get the flag, since we don't know
             where it is when the Ai object is initialized.
         """
-        if self.flag == None:
+        if self.flag is None:
         # Find the flag in the game objects list
             for obj in self.game_objects_list:
                 if isinstance(obj, gameobjects.Flag):
@@ -221,7 +212,6 @@ class Ai:
         """ Converts and returns the float position of our tank to an integer position. """
         x, y = position_vector
         return Vec2d(int(x), int(y))
-    
 
     def get_tile_neighbors(self, coord_vec, metal = None):
         """ Returns all bordering grid squares of the input coordinate.
@@ -237,16 +227,16 @@ class Ai:
         if not metal:
             return filter(self.filter_tile_neighbours, neighbours)
         return filter(self.filter_tile_neighbours_metal, neighbours)
-    
+
     def filter_tile_neighbours(self, coord, metal = None):
         tile = self.get_tile_of_position(coord)
         box_type = self.nodeentmap.boxAt
-        
-        if coord.x >= 0 and coord.x <= self.MAX_X and \
-            coord.y >= 0 and coord.y <= self.MAX_Y:
+
+        if coord.x >= 0 and coord.x <= self.max_x and \
+            coord.y >= 0 and coord.y <= self.max_y:
             if metal:
-               if box_type(tile[0], tile[1]) != 1:
-                   return True
+                if box_type(tile[0], tile[1]) != 1:
+                    return True
             if (box_type(tile[0], tile[1]) == 0 or box_type(tile[0], tile[1]) == 2):
                 return True
         return False

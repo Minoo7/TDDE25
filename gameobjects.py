@@ -1,16 +1,20 @@
-from pygame import time
-import images
-import pygame
-import pymunk
+"""File for gameobjects classes"""
+#from pygame import time
 import math
 import copy
+import pygame
+import pymunk
+import images
 import sounds
 
 DEBUG = False # Change this to set it in debug mode
 
+#pylint: disable=no-self-use, invalid-name, unused-argument, no-member, too-many-arguments, attribute-defined-outside-init, c-extension-no-member, missing-function-docstring
+
 
 def physics_to_display(x):
-    """ This function is used to convert coordinates in the physic engine into the display coordinates """
+    """ This function is used to convert coordinates in the physic engine
+        into the display coordinates """
     return x * images.TILE_SIZE
 
 
@@ -18,7 +22,8 @@ class GameObject:
     """ Mostly handles visual aspects (pygame) of an object.
         Subclasses need to implement two functions:
         - screen_position    that will return the position of the object on the screen
-        - screen_orientation that will return how much the object is rotated on the screen (in degrees). """
+        - screen_orientation that will return how much the object
+        is rotated on the screen (in degrees). """
 
     def __init__(self, sprite):
         self.sprite         = sprite
@@ -40,8 +45,9 @@ class GameObject:
             by a subclass."""
         sprite = self.sprite
 
-        p = self.screen_position() # Get the position of the object (pygame coordinates)
-        sprite = pygame.transform.rotate(sprite, self.screen_orientation()) # Rotate the sprite using the rotation of the object
+        pos = self.screen_position() # Get the position of the object (pygame coordinates)
+        sprite = pygame.transform.rotate(sprite,
+                self.screen_orientation()) # Rotate the sprite using the rotation of the object
 
         # The position of the screen correspond to the center of the object,
         # but the function screen.blit expect to receive the top left corner
@@ -49,8 +55,8 @@ class GameObject:
         # which is the vector between the center of the sprite and the top left
         # corner of the sprite
         offset = pymunk.Vec2d(sprite.get_size()) / 2.
-        p = p - offset
-        screen.blit(sprite, p) # Copy the sprite on the screen
+        pos -= offset
+        screen.blit(sprite, pos) # Copy the sprite on the screen
 
 
 
@@ -61,9 +67,9 @@ class GamePhysicsObject(GameObject):
     """
 
     def __init__(self, x, y, orientation, sprite, space, movable):
-        """ Takes as parameters the starting coordinate (x,y), the orientation, the sprite (aka the image
-            representing the object), the physic engine object (space) and whether the object can be
-            moved (movable).
+        """ Takes as parameters the starting coordinate (x,y), the orientation, the sprite
+            (aka the image representing the object), the physic engine object (space) and
+            whether the object can be moved (movable).
         """
 
         super().__init__(sprite)
@@ -72,14 +78,16 @@ class GamePhysicsObject(GameObject):
         half_width          = 0.5 * self.sprite.get_width() / images.TILE_SIZE
         half_height         = 0.5 * self.sprite.get_height() / images.TILE_SIZE
 
-        # Physical objects have a rectangular shape, the points correspond to the corners of that shape.
+        # Physical objects have a rectangular shape,
+        # the points correspond to the corners of that shape.
         points              = [[-half_width, -half_height],
                             [-half_width, half_height],
                             [half_width, half_height],
                             [half_width, -half_height]]
         self.points = points
-        # Create a body (which is the physical representation of this game object in the physic engine)
-        if(movable):
+        # Create a body (which is the physical representation of this game object
+        # in the physic engine)
+        if movable:
             # Create a movable object with some mass and moments
             # (considering the game is a top view game, with no gravity,
             # the mass is set to the same value for all objects)."""
@@ -87,23 +95,26 @@ class GamePhysicsObject(GameObject):
             moment = pymunk.moment_for_poly(mass, points)
             self.body         = pymunk.Body(mass, moment)
         else:
-            self.body         = pymunk.Body(body_type=pymunk.Body.STATIC) # Create a non movable (static) object
+            # Create a non movable (static) object
+            self.body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
         self.body.position  = x, y
-        self.body.angle     = math.radians(orientation)       # orientation is provided in degress, but pymunk expects radians.
-        self.shape          = pymunk.Poly(self.body, points)  # Create a polygon shape using the corner of the rectangle
+        # orientation is provided in degress, but pymunk expects radians.
+        self.body.angle     = math.radians(orientation)
+        # Create a polygon shape using the corner of the rectangle
+        self.shape          = pymunk.Poly(self.body, points)
         self.shape.parent = self
 
-        # Set some value for friction and elasticity, which defines interraction in case of a colision
+        # Set some value for friction and elasticity,
+        # which defines interraction in case of a colision
         #self.shape.friction = 0.5
         #self.shape.elasticity = 0.1
 
         # Add the object to the physic engine
-        if(movable):
+        if movable:
             space.add(self.body, self.shape)
         else:
             space.add(self.shape)
-
 
     def screen_position(self):
         """ Converts the body's position in the physics engine to screen coordinates. """
@@ -140,14 +151,17 @@ class Tank(GamePhysicsObject):
         self.acceleration = 0 # 1 forward, 0 for stand still, -1 for backwards
         self.rotation = 0 # 1 clockwise, 0 for no rotation, -1 counter clockwise
 
-        self.NORMAL_MAX_SPEED = 2.0
-        self.FLAG_MAX_SPEED = self.NORMAL_MAX_SPEED * 0.5
+        self.normal_max_speed = 2.0
+        self.FLAG_MAX_SPEED = self.normal_max_speed * 0.5
         self.x = x
         self.y = y
-        self.flag                 = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
-        self.max_speed        = self.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
-        self.start_position       = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
-        self.shape.collision_type = 1                       # Define the collision type of the tank as 1
+        # This variable is used to access the flag object, if the current tank is carrying the flag
+        self.flag               = None
+        self.max_speed          = self.normal_max_speed   # Impose a maximum speed to the tank
+        # Define the start pos, which is also the pos where the tank has to return with the flag
+        self.start_position       = pymunk.Vec2d(x, y)
+        self.shape.collision_type = 1                   # Define the collision type of the tank as 1
+
         #Eget:
         self.player_number = None
         self.bullet = None
@@ -157,14 +171,11 @@ class Tank(GamePhysicsObject):
         self.wins = 0
         self.score = 0
         self.bullet_speed = 2.0
-    
         self.protection = False
         self.blink_count = 0
         self.protec_timer = 0
         self.respawn = False
-
         self.orientation = orientation
-
         self.alive = True
 
     def accelerate(self):
@@ -197,9 +208,9 @@ class Tank(GamePhysicsObject):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
 
         # Creates a vector in the direction we want accelerate / decelerate
-        acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
+        acc_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
         # Applies the vector to our velocity
-        self.body.velocity += acceleration_vector
+        self.body.velocity += acc_vector
 
         # Makes sure that we dont exceed our speed limit
         velocity = clamp(self.max_speed, self.body.velocity.length)
@@ -210,8 +221,8 @@ class Tank(GamePhysicsObject):
         self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
 
         if not self.alive:
-            if self.flag != None:
-                if self.flag.is_on_tank != None:
+            if self.flag is not None:
+                if self.flag.is_on_tank is not None:
                     self.flag_pos = pymunk.Vec2d(self.flag.x, self.flag.y)
                     self.flag.is_on_tank = False
                     self.flag = None
@@ -220,38 +231,38 @@ class Tank(GamePhysicsObject):
             self.spawn_reset()
             self.respawn = True
             self.alive = True
-    
+
     def spawn_reset(self):
         self.stop_moving()
         self.body.position = self.start_position
         self.body.angle     = math.radians(self.orientation)
-        
+
     def reset_tank(self, flag_start):
         self.flag_pos = pymunk.Vec2d(flag_start[0], flag_start[1])
-        if self.flag != None:
+        if self.flag is not None:
             self.flag.is_on_tank = False
             self.flag = None
         self.spawn_reset()
 
 
     def post_update(self, time):
-        if(self.bullet != None):
+        if self.bullet is not None:
             self.bullet.x           = self.body.position[0]
             self.bullet.y           = self.body.position[1]
         # If the tank carries the flag, then update the positon of the flag
-        if(self.flag != None):
+        if self.flag is not None:
             self.flag.x           = self.body.position[0]
             self.flag.y           = self.body.position[1]
             self.flag.orientation = -math.degrees(self.body.angle)
         # Else ensure that the tank has its normal max speed
         else:
-            self.max_speed = self.NORMAL_MAX_SPEED
+            self.max_speed = self.normal_max_speed
 
         if self.protection:
-            if 500 < (time - self.protec_timer):
+            if (time - self.protec_timer) > 500:
                 self.blink_count += 1
                 alpha = self.sprite.get_alpha()
-                if alpha == 200 or alpha == 255:
+                if alpha in (200, 255):
                     val = 50
                 elif alpha == 50:
                     val = 200
@@ -268,10 +279,10 @@ class Tank(GamePhysicsObject):
             and it is close to the current tank, then the current tank will grab the flag.
         """
         # Check that the flag is not on other tank
-        if(not flag.is_on_tank):
+        if not flag.is_on_tank:
             # Check if the tank is close to the flag
             flag_pos = pymunk.Vec2d(flag.x, flag.y)
-            if((flag_pos - self.body.position).length < 0.6):
+            if (flag_pos - self.body.position).length < 0.6:
                 # Grab the flag !
                 self.flag           = flag
                 flag.is_on_tank     = True
@@ -279,16 +290,16 @@ class Tank(GamePhysicsObject):
                 sounds.flag_sound()
 
     def has_won(self):
-        """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
+        """ Check if the current tank has won (if the flag is picked up and at base position)"""
         self.wins += 1
-        return self.flag != None and (self.start_position - self.body.position).length < 0.2
+        return self.flag is not None and (self.start_position - self.body.position).length < 0.2
 
     def shoot(self, lst, time, space):
-        """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
-        if 1000 < (time - self.timer):
+        """ Function to shoot a bullet """
+        if (time - self.timer) > 1000:
             self.timer = time
-            #self.shooting = False
-            bullet = Bullet(self.body.position[0], self.body.position[1], math.degrees(self.body.angle), images.bullet, space, self.bullet_speed)
+            bullet = Bullet(self.body.position[0], self.body.position[1],
+                            math.degrees(self.body.angle), images.bullet, space, self.bullet_speed)
             bullet.is_shot          = True
             self.bullet             = bullet
             self.bullet.x           = self.body.position[0]
@@ -305,7 +316,8 @@ class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """
 
     def __init__(self, x, y, sprite, movable, space, destructable):
-        """ It takes as arguments the coordinate of the starting position of the box (x,y) and the box model (boxmodel). """
+        """ It takes as arguments the coordinate of the starting position of the box (x,y)
+        and the box model (boxmodel). """
         super().__init__(x, y, 0, sprite, space, movable)
         self.movable = movable
         self.destructable = destructable
@@ -317,19 +329,20 @@ class Box(GamePhysicsObject):
     def get_type(self):
         return self.destructable
 
-def get_box_with_type(x, y, type, space):
+def get_box_with_type(x, y, b_type, space):
     (x, y) = (x + 0.5, y + 0.5) # Offsets the coordinate to the center of the tile
-    if type == 1: # Creates a non-movable non-destructable rockbox
+    if b_type == 1: # Creates a non-movable non-destructable rockbox
         return Box(x, y, images.rockbox, False, space, False)
-    if type == 2: # Creates a movable destructable woodbox
+    if b_type == 2: # Creates a movable destructable woodbox
         return Box(x, y, images.woodbox, True, space, True)
-    if type == 3: # Creates a movable non-destructable metalbox
+    if b_type == 3: # Creates a movable non-destructable metalbox
         return Box(x, y, images.metalbox, True, space, False)
 
 
 
 class GameVisibleObject(GameObject):
-    """ This class extends GameObject for object that are visible on screen but have no physical representation (bases and flag) """
+    """ This class extends GameObject for object that are visible on screen
+        but have no physical representation (bases and flag) """
 
     def __init__(self, x, y, sprite):
         """ It takes argument the coordinates (x,y) and the sprite. """
@@ -361,9 +374,9 @@ class Explosion(GameVisibleObject):
         self.opacity = 0
         self.game_objects_list = game_objects_list
         #self.game_objects_list.remove(self)
-    
+
     def post_update(self, time):
-        if 2000 < (time - self.timer):
+        if (time - self.timer) > 2000:
             self.sprite.set_alpha(self.sprite.get_alpha() - 10)
         if self.sprite.get_alpha() < 1: # if invisible
             self.timer = 0
@@ -381,10 +394,9 @@ class Bullet(GamePhysicsObject):
         self.velocity = 10
         self.rotation = 0
         self.ACCELERATION = 0.4
-        #self.NORMAL_MAX_SPEED = 10.0
-        self.NORMAL_MAX_SPEED = speed
+        self.normal_max_speed = speed
 
-        self.active = False  
+        self.active = False
         self.max_speed        = 10.0
         self.shape.collision_type = 2  # Define the collision type of the bullet as 2
         #self.exploded
@@ -393,6 +405,6 @@ class Bullet(GamePhysicsObject):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
 
         # Creates a vector in the direction we want accelerate / decelerate
-        acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
+        acc_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
         # Applies the vector to our velocity
-        self.body.velocity += acceleration_vector
+        self.body.velocity += acc_vector

@@ -1,5 +1,7 @@
-import pygame
+"""Images file"""
 import os
+import pygame
+# pylint: disable=no-member
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
@@ -9,14 +11,14 @@ def load_image(file):
     try:
         surface = pygame.image.load(file)
     except pygame.error:
-        raise SystemExit('Could not load image "%s" %s'%(file, pygame.get_error()))
+        raise SystemExit('Could not load image "%s" %s'%(file, pygame.get_error())) #pylint: disable=raise-missing-from
     return surface.convert_alpha()
 
 
 TILE_SIZE = 40 # Define the default size of tiles
- 
+
 explosion = load_image('explosion.png') # Image of an explosion
- 
+
 grass     = load_image('grass.png') # Image of a grass tile
 
 rockbox   = load_image('rockbox.png') # Image of a rock box (wall)
@@ -34,9 +36,11 @@ bullet = pygame.transform.scale(bullet, (10, 10))
 bullet = pygame.transform.rotate(bullet, -90)
 
 # List of image of tanks of different colors
-tanks     = [load_image('tank_orange.png'), load_image('tank_blue.png'), load_image('tank_white.png'),
-             load_image('tank_yellow.png'), load_image('tank_red.png'),  load_image('tank_gray.png')]
+tanks     = [load_image('tank_orange.png'), load_image('tank_blue.png'),
+             load_image('tank_white.png'), load_image('tank_yellow.png'),
+             load_image('tank_red.png'), load_image('tank_gray.png')]
 
 # List of image of bases corresponding to the color of each tank
-bases     = [load_image('base_orange.png'), load_image('base_blue.png'), load_image('base_white.png'),
-             load_image('base_yellow.png'), load_image('base_red.png'),  load_image('base_gray.png')]
+bases     = [load_image('base_orange.png'), load_image('base_blue.png'),
+             load_image('base_white.png'), load_image('base_yellow.png'),
+             load_image('base_red.png'), load_image('base_gray.png')]
