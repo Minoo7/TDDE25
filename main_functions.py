@@ -2,15 +2,12 @@ import pygame
 from pygame.locals import *
 from pygame.color import *
 import pymunk
-import time
-# import gamemenu Under konstruktion
 
 # https://gitlab.liu.se/tdde25/ctf/-/wikis/Tutorial
 
 
 # ----- Initialisation ----- #
 
-# gamemenu.gameintro() #Under Konstruktion
 
 # -- Initialise the display
 pygame.init()
@@ -22,16 +19,14 @@ clock = pygame.time.Clock()
 # -- Initialise the physics engine
 space = pymunk.Space()
 space.gravity = (0.0,  0.0)
-space.damping = 0.1 # Adds friction to the ground for all objects
+space.damping = 0.1  # Adds friction to the ground for all objects
 
 # -- Import from the ctf framework
 import ai
 import sounds
 import images
 import gameobjects
-import maps
 import argparse
-
 import gamemenu
 
 # Loading and playing background music:
@@ -52,12 +47,13 @@ score_time_comp = 0
 # Define flags from commandline deciding between multiplayer and singleplayer
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--hot-multiplayer', default=False, action='store_true') # Justera False till True för enklare testning
+parser.add_argument('--hot-multiplayer', default=False, action='store_true')  # Justera False till True för enklare testning
 parser.add_argument('--singleplayer', default=False, action='store_true')
-parser.add_argument('--time-condition', default=False, action='store_true') # Ändrade till False för det borde funka, har inte pygame på denna dator och pip funkar inte // MERVAN
+parser.add_argument('--time-condition', default=False, action='store_true')
 parser.add_argument('--score-condition', default=False, action='store_true')
 parser.add_argument('--rounds-condition', default=False, action='store_true')
 args = parser.parse_args()
+
 
 if not any([args.hot_multiplayer, args.singleplayer]):
     amount_players = gamemenu.gameintro()
@@ -66,9 +62,11 @@ if not any([args.hot_multiplayer, args.singleplayer]):
     if amount_players == 2:
         args.hot_multiplayer = True
 
+singleplayer = args.singleplayer
+multiplayer = args.hot_multiplayer
+
 # Choose gamemode
 if not any([args.time_condition, args.score_condition, args.rounds_condition]):
-#if True:
     gamemode = gamemenu.gamemode()
     if gamemode == "time":
         args.time_condition = True
@@ -78,11 +76,9 @@ if not any([args.time_condition, args.score_condition, args.rounds_condition]):
         args.rounds_condition = True
 
 
-# Define the current level
+# Define the current map by calling the gamemenu map-picker
 
-#current_map = maps.choose_map("map0")
 current_map = gamemenu.mappicker()
-
 
 
 # Initialize world border
@@ -103,42 +99,40 @@ space.add(*static_lines)
 
 # Lists for all game objects
 global game_objects_list
-game_objects_list   = []
-tanks_list          = []
+game_objects_list = []
+tanks_list = []
 ai_list = []
 
-# -- Resize the screen to a fullscreen
+# -- Set the screen to fullscreen
 
-screen = pygame.display.set_mode((current_map.rect().size))
-
-# screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN) # Under konstruktion
-# gamemenu.gameintro() # Under konstruktion
+screen = pygame.display.set_mode((current_map.rect().size), pygame.FULLSCREEN)
 
 # -- Generate the background
 background = pygame.Surface(screen.get_size())
 
+
 def score_board():
     font = pygame.font.SysFont("Tahoma", 24)
 
-    box_x = current_map.rect().size[0]//4 # Prova ändra denna för att få recten att bli bredare
+    box_x = current_map.rect().size[0]//4
     box_w = current_map.rect().size[0]//2
     box_y = current_map.rect().size[1]//4
     box_h = current_map.rect().size[1]//2
 
-    
     rect_outer = (box_x, box_y, box_w, box_h)
-    pygame.draw.rect(screen, (255,255,255), rect_outer)
+    pygame.draw.rect(screen, (255, 255, 255), rect_outer)
     rect_inner = (box_x+5, box_y+5, box_w-10, box_h-10)
     pygame.draw.rect(screen, (0, 0, 0), rect_inner)
-    
-    str_start = box_y + 10
 
+    str_start = box_y + 10
 
     for player in score_dict:
         score_str = f"Player {player} : {score_dict[player]}"
         score_board = font.render(f"{score_str}", False, (255, 255, 255))
-        screen.blit(score_board, (box_w - (score_board.get_rect().width / 2), (str_start + (score_board.get_rect().height/len(score_dict)))))
+        screen.blit(score_board, (box_w - (score_board.get_rect().width / 2),
+                                 (str_start + (score_board.get_rect().height/len(score_dict)))))
         str_start += score_board.get_rect().height
+
     global score_time_comp
     score_time_comp += 3
     pygame.display.flip()
@@ -146,25 +140,23 @@ def score_board():
 
 
 def grass_background():
-    
     # Copy the grass tile all over the level area
     for x in range(0, current_map.width):
         for y in range(0,  current_map.height):
             background.blit(images.grass,  (x*images.TILE_SIZE, y*images.TILE_SIZE))
+
 
 def create_boxes():
     # -- Create the boxes
     for x in range(0, current_map.width):
         for y in range(0,  current_map.height):
             # Get the type of boxes
-            box_type  = current_map.boxAt(x, y)
+            box_type = current_map.boxAt(x, y)
             # If the box type is not 0 (aka grass tile), create a box
             if(box_type != 0):
                 # Create a "Box" using the box_type, aswell as the x,y coordinates,
                 # and the pymunk space
 
-                #box = gameobjects.get_box_with_type(x, y, box_type, space)
-                #game_objects_list.append(box)
                 game_objects_list.append(gameobjects.get_box_with_type(x, y, box_type, space))
 
 
@@ -175,7 +167,7 @@ def create_tanks():
     for i in range(0, len(current_map.start_positions)):
         # Get the starting position of the tank "i"
         pos = current_map.start_positions[i]
-        
+
         # Create the tanks and assign player number
         tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
         game_objects_list.append(tank)
@@ -188,7 +180,7 @@ def create_tanks():
         base = gameobjects.GameVisibleObject(tanks_list[i].start_position.x, tanks_list[i].start_position.y, images.bases[i])
         game_objects_list.append(base)
 
-        if (args.singleplayer and i > 0) or (args.hot_multiplayer and i > 1):
+        if (singleplayer and i > 0) or (multiplayer and i > 1):
             # Skapar ai-tanks
             tank_ai = ai.Ai(tank, game_objects_list, tanks_list, space, current_map)
             tank_ai.tank.bullet_speed *= 1.2
@@ -215,18 +207,19 @@ def reset_game():
             game_objects_list.remove(obj)
     for i in range(len(ai_list)):
         new_ai(i)
-    
+
     create_boxes()
-    
+
     for key, value in score_dict.items():
         print("Player", key, ' : ', value)
     score_board()
+
 
 def collision_bullet_tank(arb, space, data):
     """Hanterar kollision mellan tank och bullet"""
     tank = arb.shapes[0].parent
     bullet_shape = arb.shapes[1]
-    if not tank.get_bullet() == bullet_shape.parent: # Förhindar tanks från att skjuta sig själv
+    if not tank.get_bullet() == bullet_shape.parent:  # Förhindar tanks från att skjuta sig själv
         if not tank.protection:
             if tank.hitpoints > 1:
                 tank.hitpoints -= 1
@@ -239,10 +232,11 @@ def collision_bullet_tank(arb, space, data):
 
             space.remove(bullet_shape, bullet_shape.body)
 
-            if bullet_shape.parent in game_objects_list: # fix error
+            if bullet_shape.parent in game_objects_list:  # fix error
                 game_objects_list.remove(bullet_shape.parent)
 
     return False
+
 
 def collision_bullet_box(arb, space, data):
     """Hanterar kollision mellan boxes och bullets"""
@@ -260,25 +254,25 @@ def collision_bullet_box(arb, space, data):
 
     space.remove(bullet_shape, bullet_shape.body)
 
-    if bullet_shape.parent in game_objects_list: # fixar error
+    if bullet_shape.parent in game_objects_list:  # fixar error
         game_objects_list.remove(bullet_shape.parent)
 
     return False
 
-def event_handler(running):
+
+def event_handler():
     """Hanterar key-presses/events"""
-    #global key_action
+
     for event in pygame.event.get():
-        
+
         # Stäng av spelet - ESC
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-            running = False
-            exit() #*
+            exit()
 
         # Spelarnas kontroller
         if event.type == KEYDOWN:
-            if args.singleplayer or args.hot_multiplayer:
-                if event.key == K_x: # Test key
+            if singleplayer or multiplayer:
+                if event.key == K_x:  # Test key
                     print(args.time_condition)
                     print(args.score_condition)
                     print(args.rounds_condition)
@@ -288,15 +282,14 @@ def event_handler(running):
                     key_action[event.key]()
                 if event.key == K_RETURN:
                     tanks_list[1].shoot(game_objects_list, pygame.time.get_ticks(), space)
- 
+
         if event.type == KEYUP:
             if event.key in key_action_up:
                 key_action_up[event.key]()
-            #splitta dioctionaries nästa gång !! *
-            #if args.singleplayer or args.hot_multiplayer:
 
-#-- Update physics
-def physics_update(skip_update): #update
+
+# -- Update physics
+def physics_update(skip_update):
     if skip_update == 0:
         # Loop over all the game objects and update their speed in function of their
         # acceleration.
@@ -312,28 +305,28 @@ def physics_update(skip_update): #update
                     score_dict[obj.player_number] = obj.score
                     reset_game()
                     win_conditions(obj)
-                        
-
 
         skip_update = 2
     else:
         skip_update -= 1
 
+
 def win_conditions(obj = None):
-    if (obj != None and args.score_condition and obj.score == 5) or \
-       (args.rounds_condition and rounds_played == 10):
+    if (obj is not None and args.score_condition and obj.score == 5) \
+       or (args.rounds_condition and rounds_played == 10):
         winning_screen()
+
 
 def winning_screen():
     font = pygame.font.SysFont("Tahoma", 24)
 
-    box_x = current_map.rect().size[0]/4 - 5
+    box_x = current_map.rect().size[0]/4 - 13
     box_y = current_map.rect().size[1]/4
-    box_w = current_map.rect().size[0]/2 + 10
+    box_w = current_map.rect().size[0]/2 + 26
     box_h = current_map.rect().size[1]/2
 
     rect_outer = (box_x, box_y, box_w, box_h)
-    pygame.draw.rect(screen, (255,255,255), rect_outer)
+    pygame.draw.rect(screen, (255, 255, 255), rect_outer)
     rect_inner = (box_x+5, box_y+5, box_w-10, box_h-10)
     pygame.draw.rect(screen, (0, 0, 0), rect_inner)
 
@@ -355,8 +348,9 @@ def winning_screen():
         win_str = f"Player {winning_player} has won!"
     else:
         win_str = "It´s a draw!"
+    
     win_board = font.render(f"{win_str}", False, (255, 255, 255))
-    screen.blit(win_board, ((box_w - 10 - win_board.get_rect().width / 2), (box_h - win_board.get_rect().height / 2)))
+    screen.blit(win_board, ((current_map.rect().size[0]/2 - win_board.get_rect().width / 2), (box_h - win_board.get_rect().height / 2)))
 
     pygame.display.flip()
     pygame.time.delay(5000)
@@ -379,6 +373,7 @@ def show_clock():
 def new_ai(index):
     ai_list[index] = ai.Ai(ai_list[index].tank, game_objects_list, tanks_list, space, current_map)
 
+
 def object_update():
     #   Check collisions and update the objects position
     space.step(1 / FRAMERATE)
@@ -390,6 +385,7 @@ def object_update():
             ai_list[i].tank.respawn = False
             new_ai(i)
         ai_list[i].decide(game_objects_list, pygame.time.get_ticks(), space)
+
 
 def display_update():
     #-- Update Display
@@ -404,7 +400,7 @@ def display_update():
     # Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
-#def __init__():
+
 def __init__():
     #-- Create background, boxes and tanks
     global game_start_time
@@ -422,7 +418,7 @@ def __init__():
                      K_UP: tanks_list[1].stop_moving, K_DOWN: tanks_list[1].stop_moving, K_LEFT: tanks_list[1].stop_turning, K_RIGHT: tanks_list[1].stop_turning}
 
     #method for splitting dictionary in half to prevent player 2 controls of controlling ai:
-    if args.singleplayer:
+    if singleplayer:
         key_action = dict(list(key_action.items())[:len(key_action)//2:])
         key_action_up = dict(list(key_action_up.items())[:len(key_action_up)//2:])
 

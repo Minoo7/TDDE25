@@ -4,9 +4,12 @@
 För att starta programmet måste du skapa en tom mapp med valfritt namn. 
 Klona sedan repot från gitlab (länk: https://gitlab.liu.se/tdde25-2021/tdde25-2021-projekt-sg5-u-06). 
 Välj en plats där du vet var den hamnar. 
-Sedan startar du terminalen för att sedan navigera dig till rätt filplats genom att skriva cd /home/[LIU-ID]/[Vald plats för mappen (ex. Desktop]/[Mappens namn]. 
+
+-- LIU dator
+Omn du är på en Liu dator startar du terminalen för att sedan navigera dig till rätt filplats genom att skriva cd /home/[LIU-ID]/[Vald plats för mappen (ex. Desktop]/[Mappens namn]. 
 När du sedan trycker enter kan du dubbelkolla att du hamnade rätt genom att skriva ls. 
-Ser du filen ctf.py har du hamnat rätt. Du kan starta genom att skriva python3 ctf.py eller avgöra om du vill spela singleplayer eller multiplayer. 
+Annars laddar du ner repot på valfri plats.
+Ser du filen ctf.py i terminalen har du hamnat rätt. Du kan starta genom att skriva python3 ctf.py eller avgöra om du vill spela singleplayer eller multiplayer. 
 Vill du spela singleplayer skriver du: ”python3 ctf.py  --singleplayer”, 
 vill du istället spela lokal multiplayer skriver du istället ”python3 ctf.py --hot-multiplayer”.
 
@@ -29,7 +32,6 @@ Poängräkning – när du vinner en runda skriver programmet ut hur mycket poä
 Liv – spelare och lådor behöver träffas 2 gånger för att förstöras
 Läsa in kartor från fil – Spelet läser in spelet från en textfil
 Välkomst skärm – Spelet går att starta direkt från ctf.py där du möts av en skärm där du kan välja inställningar för spelet
-Scoreboard – Poängräkningen visas på skärmen när någon får ett poäng
 Fler sätt att vinna – det går att välja att vinna genom: tid, poäng och antal rundor. Det finns även tidnedräkning så du ser hur mycket tid som finns kvar om du väljer att vinna på tid
 
 ---- Functionality ----

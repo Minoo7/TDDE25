@@ -12,10 +12,9 @@ running = True
 
 # Spel-loopen
 main_functions.__init__()
-#main_functions.tt()
 while running:
 
-    main_functions.event_handler(running)
+    main_functions.event_handler()
     main_functions.object_update()
     main_functions.physics_update(skip_update)
     main_functions.display_update()
