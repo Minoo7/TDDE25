@@ -405,12 +405,10 @@ def object_update():
         if i[1].tank.respawn:
             i[1].tank.respawn = False
             new_ai(i[0])
-        #ai_list[i[0]].decide(game_objects_list, pygame.time.get_ticks(), space)
         i[1].decide(game_objects_list, pygame.time.get_ticks(), space)
 
 def display_update():
     """Updates display"""
-    #-- Update Display
     # Display the background on the screen
     screen.blit(background, (0, 0))
     # Update the display of the game objects on the screen

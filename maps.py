@@ -19,6 +19,8 @@ class Map:
     def boxAt(self, x, y):
         """ Return the type of the box at coordinates (x, y). """
         return self.boxes[y][x]
+
+
 def choose_map(map_name):
     """ Loads in a map from a textfile """
     with open(f"data/maps/{map_name}.txt") as map_choice:

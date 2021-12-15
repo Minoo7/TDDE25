@@ -226,7 +226,6 @@ class Tank(GamePhysicsObject):
                     self.flag_pos = pymunk.Vec2d(self.flag.x, self.flag.y)
                     self.flag.is_on_tank = False
                     self.flag = None
-            #self.body.position = self.start_position
             self.protection = True
             self.spawn_reset()
             self.respawn = True
@@ -373,7 +372,6 @@ class Explosion(GameVisibleObject):
         self.timer = 0
         self.opacity = 0
         self.game_objects_list = game_objects_list
-        #self.game_objects_list.remove(self)
 
     def post_update(self, time):
         if (time - self.timer) > 2000:
@@ -399,7 +397,6 @@ class Bullet(GamePhysicsObject):
         self.active = False
         self.max_speed        = 10.0
         self.shape.collision_type = 2  # Define the collision type of the bullet as 2
-        #self.exploded
 
     def update(self):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
