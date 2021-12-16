@@ -1,7 +1,7 @@
 """Images file"""
+# pylint: disable=no-member, raise-missing-from
 import os
 import pygame
-# pylint: disable=no-member
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
@@ -11,7 +11,7 @@ def load_image(file):
     try:
         surface = pygame.image.load(file)
     except pygame.error:
-        raise SystemExit('Could not load image "%s" %s'%(file, pygame.get_error())) #pylint: disable=raise-missing-from
+        raise SystemExit('Could not load image "%s" %s'%(file, pygame.get_error()))
     return surface.convert_alpha()
 
 

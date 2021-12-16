@@ -1,5 +1,5 @@
 """File for gameobjects classes"""
-#from pygame import time
+#pylint: disable=no-self-use, invalid-name, unused-argument, no-member, too-many-arguments, attribute-defined-outside-init, c-extension-no-member, missing-function-docstring
 import math
 import copy
 import pygame
@@ -8,8 +8,6 @@ import images
 import sounds
 
 DEBUG = False # Change this to set it in debug mode
-
-#pylint: disable=no-self-use, invalid-name, unused-argument, no-member, too-many-arguments, attribute-defined-outside-init, c-extension-no-member, missing-function-docstring
 
 
 def physics_to_display(x):

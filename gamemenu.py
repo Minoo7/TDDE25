@@ -1,11 +1,11 @@
 """File for implementing gamemenu for the game"""
+#pylint: disable=no-member, invalid-name, consider-using-sys-exit, redefined-outer-name, too-many-arguments
 import pygame
 import pymunk
 import maps
 import images
 import gameobjects
 #from pygame.constants import FULLSCREEN
-#pylint: disable=no-member, invalid-name, consider-using-sys-exit, redefined-outer-name
 
 #-- Start a screen
 WIDTH = HEIGHT = 720
@@ -15,7 +15,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 PREVIEW_TILE_SIZE = 10
 
 # Intiliaze game
-pygame.init() # pylint: disable=no-member
+pygame.init()
 pygame.font.init()
 pygame.display.set_caption('Main Menu')
 clock = pygame.time.Clock()
@@ -72,13 +72,12 @@ navajowhite = (255, 222, 173)
 
 
 #-- Button creater
-def create_button(x, y, width, height, hovercolor, defaultcolor): #pylint: disable=too-many-arguments
+def create_button(x, y, width, height, hovercolor, defaultcolor):
     """ Creates a button with ability to hover and press """
     # Gets mouse x and y pos
     mouse = pygame.mouse
     # Checks if a mouse gets pressed with 3 buttons instead of 5
     click = pygame.mouse.get_pressed(3)
-    #pygame.MOUSEBUTTONDOWN
     # Draws a button and checks if we interact with the button
     rect = pygame.Rect(x, y, width, height)
     if rect.collidepoint(mouse.get_pos()):

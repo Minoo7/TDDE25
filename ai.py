@@ -1,13 +1,10 @@
 """File for ai class and functions"""
+#pylint: disable=unused-import, missing-function-docstring, invalid-name, no-self-use, too-many-arguments
 import math
 from collections import deque
 import pymunk
 from pymunk import Vec2d
-#from pymunk.query_info import SegmentQueryInfo #pylint: disable=unused-import
-#from pymunk.shapes import Shape
 import gameobjects
-
-#pylint: disable= missing-function-docstring, invalid-name, no-self-use
 
 # NOTE: use only 'map0' during development!
 
@@ -30,7 +27,7 @@ class Ai:
     a breadth first search. Also capable of shooting other tanks and or wooden
     boxes. """
 
-    def __init__(self, tank,  game_objects_list, tanks_list, space, nodeentmap): #pylint: disable=too-many-arguments
+    def __init__(self, tank,  game_objects_list, tanks_list, space, nodeentmap):
         self.tank               = tank
         self.game_objects_list  = game_objects_list
         self.tanks_list         = tanks_list

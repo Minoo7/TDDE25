@@ -1,11 +1,12 @@
 """Functions to be used by ctf"""
+# pylint: disable=wrong-import-position, redefined-outer-name, unused-argument, consider-using-enumerate, unused-wildcard-import, wildcard-import, no-name-in-module, ungrouped-imports, no-member
 import argparse
 import pygame
-from pygame.locals import * # pylint: disable=unused-wildcard-import, wildcard-import
-from pygame.color import * # pylint: disable=wildcard-import
+from pygame.locals import *
+from pygame.color import *
 import pymunk
 
-from pygame.constants import ( #pylint: disable=no-name-in-module, ungrouped-imports
+from pygame.constants import (
     QUIT, KEYUP, KEYDOWN, K_ESCAPE, K_SPACE, K_RETURN, K_w, K_a, K_s, K_d, K_UP, K_LEFT, K_DOWN,
     K_RIGHT
 )
@@ -13,17 +14,15 @@ from pygame.constants import ( #pylint: disable=no-name-in-module, ungrouped-imp
 # ----- Initialisation ----- #
 
 # -- Initialise the display
-pygame.init() # pylint: disable=no-member
+pygame.init()
 pygame.display.set_mode()
 
 # -- Import from the ctf framework
-# pylint: disable=wrong-import-position, redefined-outer-name, unused-argument
 import ai
 import sounds
 import images
 import gameobjects
 import gamemenu
-# pylint: enable=wrong-import-position
 
 # -- Initialise the clock
 clock = pygame.time.Clock()
@@ -43,10 +42,10 @@ pygame.display.set_caption("Capture The Flag")
 FRAMERATE = 50
 
 # -- Variables
-arbiter = pymunk.Arbiter #pylint: disable=invalid-name
+arbiter = pymunk.Arbiter
 score_dict = {}
-rounds_played = 0 #pylint: disable=invalid-name
-score_time_comp = 0 #pylint: disable=invalid-name
+rounds_played = 0
+score_time_comp = 0
 
 # Define flags from commandline deciding between multiplayer and singleplayer
 parser = argparse.ArgumentParser()
@@ -100,7 +99,6 @@ for line in static_lines:
 space.add(*static_lines)
 
 # Lists for all game objects
-#global game_objects_list #pylint: disable=invalid-name
 game_objects_list = []
 tanks_list = []
 ai_list = []
@@ -108,7 +106,7 @@ ai_list = []
 # -- Set the screen to fullscreen
 
 screen = pygame.display.set_mode((current_map.rect().size),
-pygame.RESIZABLE) # pylint: disable=no-member
+pygame.RESIZABLE)
 
 # -- Generate the background
 background = pygame.Surface(screen.get_size())
@@ -138,7 +136,7 @@ def score_board():
                                  (str_start + (board.get_rect().height/len(score_dict)))))
         str_start += board.get_rect().height
 
-    global score_time_comp #pylint: disable=global-statement
+    global score_time_comp
     score_time_comp += 3  # Compensates for the delay time
     pygame.display.flip()
     pygame.time.delay(3000)
@@ -168,7 +166,7 @@ def create_tanks():
     """ Creates all tanks and puts them in their respective lists """
 
     # Loop over the starting poistion
-    for i in range(0, len(current_map.start_positions)): #pylint: disable=consider-using-enumerate
+    for i in range(0, len(current_map.start_positions)):
         # Get the starting position of the tank "i"
         pos = current_map.start_positions[i]
 
@@ -300,7 +298,7 @@ def physics_update(skip_update):
             if isinstance(obj, gameobjects.Tank):
                 obj.try_grab_flag(flag)
                 if obj.has_won():  # Checks if a tank has scored
-                    global rounds_played #pylint: disable=global-statement
+                    global rounds_played
                     rounds_played += 1
                     obj.flag = None
                     obj.score += 1
@@ -422,7 +420,7 @@ def display_update():
 
 def __init__():
     """Initializing start-functions when starting the game"""
-    global game_start_time #pylint: disable=global-variable-undefined
+    global game_start_time
     game_start_time = pygame.time.get_ticks()  # Saving the time when the game starts
 
     # -- Create background, boxes and tanks
@@ -431,8 +429,8 @@ def __init__():
     create_tanks()
 
     # Dictionaries for handling the inputs from the user
-    global key_action #pylint: disable=global-variable-undefined
-    global key_action_up #pylint: disable=global-variable-undefined
+    global key_action
+    global key_action_up
     key_action = {K_w: tanks_list[0].accelerate, K_s: tanks_list[0].decelerate,
                   K_a: tanks_list[0].turn_left, K_d: tanks_list[0].turn_right,
                   K_UP: tanks_list[1].accelerate, K_DOWN: tanks_list[1].decelerate,
@@ -448,7 +446,7 @@ def __init__():
         key_action_up = dict(list(key_action_up.items())[:len(key_action_up)//2:])
 
     # -- Create the flag and the bases
-    global flag #pylint: disable=global-variable-undefined
+    global flag
     flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
     game_objects_list.append(flag)
 

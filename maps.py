@@ -1,11 +1,11 @@
 """Maps"""
 import pygame
 import images
-#pylint: disable=eval-used, invalid-name, missing-function-docstring
+#pylint: disable=eval-used, invalid-name, missing-function-docstring, disable=too-many-arguments
 
 class Map:
     """ An instance of Map is a blueprint for how the game map will look. """
-    def __init__(self,  width,  height,  boxes,  start_positions, flag_position): #pylint: disable=too-many-arguments
+    def __init__(self,  width,  height,  boxes,  start_positions, flag_position):
         """ Takes as argument the size of the map (width, height), an array with the boxes type,
     the start position of tanks (start_positions) and the position of the flag (flag_position). """
         self.width              = width
